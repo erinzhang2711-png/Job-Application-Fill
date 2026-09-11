@@ -91,7 +91,9 @@ https://github.com/erinzhang2711-png/Job-Application-Fill
      --project-location "$HOME/Desktop/Job Application Fill Safari" \
      --app-name "Job Application Fill" \
      --bundle-identifier "com.yourname.jobapplicationfill" \
-     --swift
+     --swift \
+     --macos-only \
+     --copy-resources
    ```
 
 2. `com.yourname.jobapplicationfill` 只是示例。请改成一个只属于你的名称，例如 `com.erinzhang.jobapplicationfill`。后续更新时务必使用**同一个** Bundle Identifier，Safari 才会将它识别为同一款扩展。
@@ -214,7 +216,9 @@ Do not choose my Apple Team, sign in to an account, approve signing, or grant Sa
      --project-location "$HOME/Desktop/Job Application Fill Safari" \
      --app-name "Job Application Fill" \
      --bundle-identifier "com.yourname.jobapplicationfill" \
-     --swift
+     --swift \
+     --macos-only \
+     --copy-resources
    ```
 
 3. Open the generated `Job Application Fill.xcodeproj` in Xcode.

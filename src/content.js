@@ -17,7 +17,7 @@
     host = document.createElement("div");
     host.id = "application-fill-host";
     document.documentElement.append(host);
-    root = host.attachShadow({ mode: "open" });
+    root = host.attachShadow({ mode: "closed" });
   }
 
   function isFillable(el) {
