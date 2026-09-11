@@ -42,6 +42,7 @@
 5. 点击“加载已解压的扩展程序”。
 6. 选择刚才解压得到的 **Job Application Fill** 文件夹——请选择包含 `manifest.json` 的文件夹，不是它的上一层或 `src` 文件夹。
 7. 扩展卡片出现后，建议点击 Chrome 工具栏右上角的拼图图标，把 **Job Application Fill** 固定到工具栏。
+8. 右键点击工具栏中的 **Job Application Fill** 图标，选择“选项”，即可进入资料编辑页，自定义字段、板块与实习经历版本。
 
 ### 更新 Chrome 版本
 
@@ -109,6 +110,10 @@ Safari 的 Xcode 工程保存的是转换时的一份扩展资源副本；仅下
 
 如果你熟悉 Xcode，也可以将更新后的 `manifest.json`、`options.html`、`images/` 和 `src/` 复制到 Xcode 工程内 Extension target 的 `Resources` 目录，再选择 **Product → Build**。Apple 说明 macOS 上后续更新可直接通过 Xcode 构建来部署。[官方更新说明](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension)
 
+### 也可以请 AI 编程助手处理
+
+如果你正在使用可操作本地文件和终端的 AI 编程助手，可以把本仓库链接和这份 README 发给它，并请它“将 Job Application Fill 转换为 Safari 扩展并完成 Xcode 工程配置”。它可以处理转换、资源同步和构建排错；但选择 Apple Team、确认签名和授权 Safari 网站权限仍需要你本人完成。
+
 ### Safari 中看不到扩展？
 
 - 确认两个 target 都使用同一个 Team，并再次按 `⌘R`。
@@ -155,6 +160,7 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 4. Click **Load unpacked**.
 5. Select the **Job Application Fill** folder that contains `manifest.json` (not its parent directory and not the `src` folder).
 6. Optionally pin Job Application Fill from Chrome’s Extensions menu to make it easier to open.
+7. Right-click the Job Application Fill toolbar icon and choose **Options** to edit your profile, fields, sections, and internship variants.
 
 To update, replace the files in the same folder and press **Reload** on its card in `chrome://extensions`. If you load a different folder instead, remove the old unpacked extension and load the new folder.
 
@@ -181,6 +187,10 @@ Safari packages a web extension inside a macOS app, so an Xcode project is requi
 7. In Safari, open **Safari → Settings → Extensions**, find **Job Application Fill**, and enable it. Grant website access only as needed.
 
 Use the same Bundle Identifier for future builds. To update, regenerate the project from the latest repository files (the simplest option) or copy the updated extension files into the generated Extension target’s `Resources` folder and build in Xcode again.
+
+### Using an AI coding agent
+
+If you use an AI coding agent that can work with local files and Terminal, give it this repository link and README and ask it to “package Job Application Fill as a Safari extension and configure the Xcode project.” It can handle conversion, resource syncing, and build troubleshooting; you should still personally choose your Apple Team, approve signing, and grant Safari website permissions.
 
 If the extension is missing from Safari Settings during local development, check signing first. For unsigned development builds, Safari requires “Allow unsigned extensions” in **Safari → Settings → Developer**. See Apple’s [run/update guide](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension) and [troubleshooting guide](https://developer.apple.com/documentation/safariservices/troubleshooting-your-safari-web-extension?language=objc).
 
