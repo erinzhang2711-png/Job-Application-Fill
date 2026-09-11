@@ -78,23 +78,30 @@
       </button>`).join("");
   }
 
+  function orderedPanelSections(current) {
+    const internshipKey = "__application_fill_internship__";
+    const order = Array.isArray(current.sectionOrder) ? current.sectionOrder : [...Object.keys(current.groups), internshipKey];
+    return order.flatMap((item) => {
+      if (item === internshipKey) return Object.keys(current.internshipVariants || {}).length ? [{ internship: true, title: current.internshipTitle || text[locale].internship }] : [];
+      return current.groups[item] ? [{ internship: false, title: item, entries: current.groups[item] }] : [];
+    });
+  }
+
   function render() {
     if (!visible || !root || !profile) return;
     const current = profile[locale];
-    const variants = Object.keys(current.internshipVariants);
+    const variants = Object.keys(current.internshipVariants || {});
     const selectedVariant = root.querySelector("select[data-variant]")?.value || variants[0];
+    const sections = orderedPanelSections(current);
     root.innerHTML = `<style>
       :host { all: initial; } * { box-sizing: border-box; } .panel { position: fixed; z-index: 2147483647; top: 72px; right: 18px; width: 340px; max-height: calc(100vh - 92px); overflow: auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:#172033; background:#fff; border:1px solid #dbe3f0; border-radius:16px; box-shadow:0 18px 50px rgba(20,38,70,.2); padding:16px; }
       header { display:flex; align-items:center; gap:8px; margin-bottom:12px; } h1 { margin:0 auto 0 0; font-size:16px; } button, select { font:inherit; } .icon, .tab { border:0; background:#eef3ff; color:#284d9b; border-radius:8px; padding:7px 9px; cursor:pointer; } .tab.active { background:#315de9; color:white; } .status { padding:9px 10px; border-radius:8px; font-size:12px; margin-bottom:12px; background:${activeField ? "#eaf9f0" : "#fff5e5"}; color:#47605a; } section { margin:12px 0; } h2 { font-size:13px; margin:0 0 7px; color:#536278; } .entry { display:block; width:100%; text-align:left; padding:9px 10px; margin:5px 0; border:1px solid #e5e9f1; border-radius:8px; background:white; cursor:pointer; } .entry:hover:not(:disabled) { border-color:#315de9; background:#f5f8ff; } .entry:disabled { cursor:not-allowed; opacity:.5; } .entry span, .entry strong { display:block; } .entry span { font-size:12px; color:#637089; margin-bottom:2px; } .entry strong { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .variant { width:100%; padding:8px; border:1px solid #dbe3f0; border-radius:8px; background:white; } .footer { display:flex; justify-content:space-between; gap:8px; padding-top:8px; } .footer button { border:0; background:none; color:#315de9; padding:4px 0; cursor:pointer; font-size:12px; }
-    </style><aside class="panel"><header><h1>${text[locale].title}</h1><button class="tab ${locale === "zh" ? "active" : ""}" data-locale="zh">中文</button><button class="tab ${locale === "en" ? "active" : ""}" data-locale="en">EN</button><button class="icon" data-close title="${text[locale].close}">×</button></header><div class="status">${activeField ? text[locale].selected : text[locale].waiting}</div>${Object.entries(current.groups).map(([name, entries]) => `<section><h2>${safe(name)}</h2>${cards(entries)}</section>`).join("")}<section><h2>${text[locale].internship}</h2><select class="variant" data-variant>${variants.map((name) => `<option ${name === selectedVariant ? "selected" : ""}>${safe(name)}</option>`).join("")}</select><div id="variant-cards">${cards(current.internshipVariants[selectedVariant])}</div></section><div class="footer"><button data-edit>${text[locale].edit}</button><button data-close>${text[locale].close}</button></div></aside>`;
-    const internshipSection = [...root.querySelectorAll("section")].find((section) => section.querySelector("h2")?.textContent === text[locale].internship);
-    const educationSection = [...root.querySelectorAll("section")].find((section) => section.querySelector("h2")?.textContent === (locale === "zh" ? "教育经历" : "Education"));
-    if (internshipSection && educationSection) educationSection.after(internshipSection);
+    </style><aside class="panel"><header><h1>${text[locale].title}</h1><button class="tab ${locale === "zh" ? "active" : ""}" data-locale="zh">中文</button><button class="tab ${locale === "en" ? "active" : ""}" data-locale="en">EN</button><button class="icon" data-close title="${text[locale].close}">×</button></header><div class="status">${activeField ? text[locale].selected : text[locale].waiting}</div>${sections.map((section) => section.internship ? `<section><h2>${safe(section.title)}</h2><select class="variant" data-variant>${variants.map((name) => `<option ${name === selectedVariant ? "selected" : ""}>${safe(name)}</option>`).join("")}</select><div id="variant-cards">${cards(current.internshipVariants[selectedVariant])}</div></section>` : `<section><h2>${safe(section.title)}</h2>${cards(section.entries)}</section>`).join("")}<div class="footer"><button data-edit>${text[locale].edit}</button><button data-close>${text[locale].close}</button></div></aside>`;
     root.querySelectorAll(".entry").forEach((button) => button.addEventListener("click", () => fill(button.dataset.value)));
     root.querySelectorAll("[data-locale]").forEach((button) => button.addEventListener("click", () => { locale = button.dataset.locale; render(); }));
     root.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => { visible = false; host.remove(); host = null; root = null; }));
     root.querySelector("[data-edit]").addEventListener("click", () => api.runtime.openOptionsPage());
-    root.querySelector("[data-variant]").addEventListener("change", render);
+    root.querySelector("[data-variant]")?.addEventListener("change", render);
   }
 
   async function toggle() {
