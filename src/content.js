@@ -8,8 +8,8 @@
   let root;
 
   const text = {
-    zh: { title: "Application Fill", selected: "已选择输入框", waiting: "先点击网页中的输入框", edit: "编辑资料", empty: "未填写", internship: "实习经历", close: "关闭" },
-    en: { title: "Application Fill", selected: "Field selected", waiting: "Click a field on this page first", edit: "Edit profile", empty: "Not set", internship: "Internship experience", close: "Close" }
+    zh: { title: "Job Application Fill", selected: "已选择输入框", waiting: "先点击网页中的输入框", edit: "编辑资料", empty: "未填写", internship: "实习经历", close: "关闭" },
+    en: { title: "Job Application Fill", selected: "Field selected", waiting: "Click a field on this page first", edit: "Edit profile", empty: "Not set", internship: "Internship experience", close: "Close" }
   };
 
   function ensurePanel() {

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Application Fill",
+  "name": "Job Application Fill",
   "version": "0.1.0",
   "description": "A local-first side panel for manually filling job application forms.",
   "permissions": ["storage", "activeTab"],
@@ -14,7 +14,7 @@
     "service_worker": "src/background.js"
   },
   "action": {
-    "default_title": "打开 Application Fill",
+    "default_title": "打开 Job Application Fill",
     "default_icon": {
       "16": "images/toolbar-16.png",
       "19": "images/toolbar-19.png",
