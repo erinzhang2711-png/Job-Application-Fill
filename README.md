@@ -59,8 +59,27 @@ Safari 不能像 Chrome 一样直接加载“已解压”扩展。需要先由 X
 ### 准备
 
 1. 在 Mac App Store 安装 **Xcode**，首次打开一次并完成其提示的组件安装。
-2. 从 GitHub 下载并解压本仓库。以下假设文件夹名称为 `Job Application Fill`，位于“下载”文件夹；若不一样，后面的路径请按实际位置替换。
-3. 打开“终端”（Finder → 应用程序 → 实用工具 → 终端）。
+
+### 方式 A：让 Agent 帮你转换（推荐）
+
+如果你正在使用可操作本地文件和终端的 AI 编程助手，可以把本仓库链接和以下提示词发给它。它可以完成下载、转换、资源同步和构建排错；但选择 Apple Team、确认签名和授权 Safari 网站权限仍需要你本人完成。
+
+```text
+请帮我把这个 Chrome 扩展转换成可在 macOS Safari 使用的扩展：
+https://github.com/erinzhang2711-png/Job-Application-Fill
+
+我已经安装好 Xcode。请下载或克隆该仓库，使用 Safari Web Extension Packager 生成一个 macOS Xcode 工程，并将应用名称设为 “Job Application Fill”。请保留现有的 manifest、src、images 和 options 页面。完成后告诉我：
+1. 生成的 .xcodeproj 文件在哪里；
+2. 我需要在 Xcode 哪两个 Target 中选择同一个 Apple Team；
+3. 如何运行、并在 Safari 设置中启用扩展。
+
+不要替我选择 Apple Team、登录账号、确认签名或授予 Safari 网站权限；遇到这些步骤时请停下来告诉我操作方法。
+```
+
+### 方式 B：手动安装
+
+1. 从 GitHub 下载并解压本仓库。以下假设文件夹名称为 `Job Application Fill`，位于“下载”文件夹；若不一样，后面的路径请按实际位置替换。
+2. 打开“终端”（Finder → 应用程序 → 实用工具 → 终端）。
 
 ### 从仓库生成 Safari 的 Xcode 工程
 
@@ -110,10 +129,6 @@ Safari 的 Xcode 工程保存的是转换时的一份扩展资源副本；仅下
 4. 按 `⌘R` 运行新工程；然后在 Safari → 设置 → 扩展中确认扩展仍已启用。
 
 如果你熟悉 Xcode，也可以将更新后的 `manifest.json`、`options.html`、`images/` 和 `src/` 复制到 Xcode 工程内 Extension target 的 `Resources` 目录，再选择 **Product → Build**。Apple 说明 macOS 上后续更新可直接通过 Xcode 构建来部署。[官方更新说明](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension)
-
-### 也可以请 AI 编程助手处理
-
-如果你正在使用可操作本地文件和终端的 AI 编程助手，可以把本仓库链接和这份 README 发给它，并请它“将 Job Application Fill 转换为 Safari 扩展并完成 Xcode 工程配置”。它可以处理转换、资源同步和构建排错；但选择 Apple Team、确认签名和授权 Safari 网站权限仍需要你本人完成。
 
 ### Safari 中看不到扩展？
 
@@ -171,8 +186,27 @@ To update, replace the files in the same folder and press **Reload** on its card
 Safari packages a web extension inside a macOS app, so an Xcode project is required for local installation.
 
 1. Install Xcode from the Mac App Store and open it once to finish setup.
-2. Download and unzip this repository.
-3. Open **Terminal** and run the following command, changing the paths and Bundle Identifier for your Mac:
+
+### Option A: Ask an AI coding agent (recommended)
+
+If you use an AI coding agent that can work with local files and Terminal, send it this repository link and the prompt below. It can download the repository, package the extension, sync resources, and troubleshoot builds. You should still personally choose your Apple Team, approve signing, and grant Safari website permissions.
+
+```text
+Please convert this Chrome extension into a macOS Safari extension:
+https://github.com/erinzhang2711-png/Job-Application-Fill
+
+I have already installed Xcode. Download or clone the repository, use Safari Web Extension Packager to create a macOS Xcode project, and name the app “Job Application Fill”. Preserve the existing manifest, src, images, and options page. When finished, tell me:
+1. Where the generated .xcodeproj file is;
+2. Which two Xcode targets need the same Apple Team;
+3. How to run the project and enable the extension in Safari Settings.
+
+Do not choose my Apple Team, sign in to an account, approve signing, or grant Safari website permissions on my behalf. Stop and explain the next step whenever one of those actions is required.
+```
+
+### Option B: Install manually
+
+1. Download and unzip this repository.
+2. Open **Terminal** and run the following command, changing the paths and Bundle Identifier for your Mac:
 
    ```bash
    xcrun safari-web-extension-packager \
@@ -183,16 +217,12 @@ Safari packages a web extension inside a macOS app, so an Xcode project is requi
      --swift
    ```
 
-4. Open the generated `Job Application Fill.xcodeproj` in Xcode.
-5. Select the project, then configure **Signing & Capabilities** for both the app target and the extension target. Enable **Automatically manage signing** and choose the same Apple ID / Personal Team for both.
-6. Select **My Mac**, then press `⌘R` or click `▶` to build and run the app.
-7. In Safari, open **Safari → Settings → Extensions**, find **Job Application Fill**, and enable it. Grant website access only as needed.
+3. Open the generated `Job Application Fill.xcodeproj` in Xcode.
+4. Select the project, then configure **Signing & Capabilities** for both the app target and the extension target. Enable **Automatically manage signing** and choose the same Apple ID / Personal Team for both.
+5. Select **My Mac**, then press `⌘R` or click `▶` to build and run the app.
+6. In Safari, open **Safari → Settings → Extensions**, find **Job Application Fill**, and enable it. Grant website access only as needed.
 
 Use the same Bundle Identifier for future builds. To update, regenerate the project from the latest repository files (the simplest option) or copy the updated extension files into the generated Extension target’s `Resources` folder and build in Xcode again.
-
-### Using an AI coding agent
-
-If you use an AI coding agent that can work with local files and Terminal, give it this repository link and README and ask it to “package Job Application Fill as a Safari extension and configure the Xcode project.” It can handle conversion, resource syncing, and build troubleshooting; you should still personally choose your Apple Team, approve signing, and grant Safari website permissions.
 
 If the extension is missing from Safari Settings during local development, check signing first. For unsigned development builds, Safari requires “Allow unsigned extensions” in **Safari → Settings → Developer**. See Apple’s [run/update guide](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension) and [troubleshooting guide](https://developer.apple.com/documentation/safariservices/troubleshooting-your-safari-web-extension?language=objc).
 
