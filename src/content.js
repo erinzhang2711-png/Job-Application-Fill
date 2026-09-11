@@ -102,7 +102,16 @@
     root.querySelector(".panel").scrollTop = scrollTop;
     root.querySelectorAll(".entry").forEach((button) => button.addEventListener("click", () => fill(button.dataset.value)));
     root.querySelectorAll("[data-locale]").forEach((button) => button.addEventListener("click", () => { locale = button.dataset.locale; render(); }));
-    root.querySelectorAll("[data-jump-section]").forEach((button) => button.addEventListener("click", () => root.querySelector(`[data-panel-section="${button.dataset.jumpSection}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })));
+    root.querySelectorAll("[data-jump-section]").forEach((button) => button.addEventListener("click", () => {
+      const panel = root.querySelector(".panel");
+      const panelTop = root.querySelector(".panel-top");
+      const target = root.querySelector(`[data-panel-section="${button.dataset.jumpSection}"]`);
+      if (!panel || !panelTop || !target) return;
+
+      const offset = target.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+      const top = panel.scrollTop + offset - panelTop.getBoundingClientRect().height - 8;
+      panel.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }));
     root.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => { visible = false; host.remove(); host = null; root = null; }));
     root.querySelector("[data-edit]").addEventListener("click", () => api.runtime.openOptionsPage());
     root.querySelector("[data-variant]")?.addEventListener("change", render);
