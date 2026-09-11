@@ -43,6 +43,7 @@
 6. 选择刚才解压得到的 **Job Application Fill** 文件夹——请选择包含 `manifest.json` 的文件夹，不是它的上一层或 `src` 文件夹。
 7. 扩展卡片出现后，建议点击 Chrome 工具栏右上角的拼图图标，把 **Job Application Fill** 固定到工具栏。
 8. 右键点击工具栏中的 **Job Application Fill** 图标，选择“选项”，即可进入资料编辑页，自定义字段、板块与实习经历版本。
+9. 进入网申页面后，点击固定在右上角工具栏的 **Job Application Fill** 图标，即可打开资料面板并开始使用。
 
 ### 更新 Chrome 版本
 
@@ -161,6 +162,7 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 5. Select the **Job Application Fill** folder that contains `manifest.json` (not its parent directory and not the `src` folder).
 6. Optionally pin Job Application Fill from Chrome’s Extensions menu to make it easier to open.
 7. Right-click the Job Application Fill toolbar icon and choose **Options** to edit your profile, fields, sections, and internship variants.
+8. On a job application page, click the pinned Job Application Fill toolbar icon to open the side panel and start filling fields.
 
 To update, replace the files in the same folder and press **Reload** on its card in `chrome://extensions`. If you load a different folder instead, remove the old unpacked extension and load the new folder.
 
