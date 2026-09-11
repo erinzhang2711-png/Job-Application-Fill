@@ -72,6 +72,7 @@
   }
 
   function cards(entries) {
+    if (!Array.isArray(entries)) return "";
     return entries.map(([label, value]) => `
       <button class="entry" data-value="${safe(value)}" ${value ? "" : "disabled"}>
         <span>${safe(label)}</span><strong>${value ? safe(value) : text[locale].empty}</strong>
