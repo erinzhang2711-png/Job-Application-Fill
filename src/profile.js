@@ -5,8 +5,8 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
     groups: {
       "基础资料": [
         ["中文姓名", ""], ["中文姓", ""], ["中文名", ""], ["英文姓名", ""], ["英文名（Given name）", ""], ["英文姓（Family name）", ""], ["Preferred name", ""], ["性别", ""], ["出生日期", ""], ["国籍/地区", ""],
-        ["中国大陆身份证", ""], ["香港身份证", ""], ["护照号码", ""], ["电子邮箱", ""], ["中国大陆手机号", ""],
-        ["香港手机号", ""], ["微信号", ""], ["中文地址", ""], ["英文地址", ""], ["邮政编码", ""]
+        ["中国大陆身份证", ""], ["香港身份证", ""], ["护照号码", ""], ["电子邮箱", ""], ["手机号", ""],
+        ["微信号", ""], ["中文地址", ""], ["邮政编码", ""]
       ],
       "教育经历": [["学校", ""], ["学院/系", ""], ["专业", ""], ["学位", ""], ["GPA", ""], ["毕业时间", ""]],
       "工作经历": [["公司", ""], ["职位", ""], ["日期", ""], ["工作描述", ""]],
@@ -28,8 +28,8 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
     groups: {
       "Personal": [
         ["First / given name", ""], ["Last / family name", ""], ["Preferred name", ""], ["Full legal name", ""], ["Chinese name", ""], ["Gender", ""], ["Date of birth", ""], ["Nationality / region", ""],
-        ["Mainland China ID", ""], ["Hong Kong ID", ""], ["Passport number", ""], ["Email", ""], ["Mainland China phone", ""],
-        ["Hong Kong phone", ""], ["WeChat", ""], ["Address", ""], ["Postal code", ""]
+        ["Mainland China ID", ""], ["Hong Kong ID", ""], ["Passport number", ""], ["Email", ""], ["Phone", ""],
+        ["WeChat", ""], ["English address", ""], ["Postal code", ""]
       ],
       "Education": [["School", ""], ["Faculty / department", ""], ["Major", ""], ["Degree", ""], ["GPA", ""], ["Graduation date", ""]],
       "Work experience": [["Company", ""], ["Title", ""], ["Dates", ""], ["Description", ""]],
@@ -80,6 +80,21 @@ function applicationFillMergeProfile(storedProfile) {
     const requestedOrder = hasSavedOrder ? storedLocale.sectionOrder : APPLICATION_FILL_DEFAULT_PROFILE[locale].sectionOrder;
     merged[locale].sectionOrder = requestedOrder.filter((item, index) => available.has(item) && requestedOrder.indexOf(item) === index);
     for (const group of Object.keys(merged[locale].groups)) if (!merged[locale].sectionOrder.includes(group)) merged[locale].sectionOrder.push(group);
+
+    const personalGroup = locale === "zh" ? "基础资料" : "Personal";
+    const personalEntries = merged[locale].groups[personalGroup];
+    if (!personalEntries) continue;
+    const phoneLabels = locale === "zh" ? ["手机号", "中国大陆手机号", "香港手机号"] : ["Phone", "Mainland China phone", "Hong Kong phone"];
+    const addressLabels = locale === "zh" ? ["中文地址", "英文地址"] : ["English address", "Address"];
+    const phone = personalEntries.find(([label]) => phoneLabels.includes(label));
+    const address = personalEntries.find(([label]) => addressLabels.includes(label));
+    if (phone) phone[0] = locale === "zh" ? "手机号" : "Phone";
+    if (address) address[0] = locale === "zh" ? "中文地址" : "English address";
+    merged[locale].groups[personalGroup] = personalEntries.filter(([label], index) => {
+      const isExtraPhone = phoneLabels.includes(label) && personalEntries[index] !== phone;
+      const isExtraAddress = addressLabels.includes(label) && personalEntries[index] !== address;
+      return !isExtraPhone && !isExtraAddress;
+    });
   }
   return merged;
 }
