@@ -7,6 +7,7 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
         ["香港手机号", ""], ["微信号", ""], ["中文地址", ""], ["英文地址", ""], ["邮政编码", ""]
       ],
       "教育经历": [["学校", ""], ["学院/系", ""], ["专业", ""], ["学位", ""], ["GPA", ""], ["毕业时间", ""]],
+      "工作经历": [["公司", ""], ["职位", ""], ["日期", ""], ["工作描述", ""]],
       "项目经历": [["项目名称", ""], ["项目角色", ""], ["项目日期", ""], ["项目描述", ""]],
       "校园经历": [["组织/社团", ""], ["职务", ""], ["日期", ""], ["经历描述", ""]],
       "语言能力": [["中文", "母语"], ["英文", ""]],
@@ -26,6 +27,7 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
         ["Hong Kong phone", ""], ["WeChat", ""], ["Address", ""], ["Postal code", ""]
       ],
       "Education": [["School", ""], ["Faculty / department", ""], ["Major", ""], ["Degree", ""], ["GPA", ""], ["Graduation date", ""]],
+      "Work experience": [["Company", ""], ["Title", ""], ["Dates", ""], ["Description", ""]],
       "Projects": [["Project name", ""], ["Role", ""], ["Dates", ""], ["Description", ""]],
       "Campus activities": [["Organisation", ""], ["Role", ""], ["Dates", ""], ["Description", ""]],
       "Languages": [["Chinese", "Native"], ["English", ""]],
