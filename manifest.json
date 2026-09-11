@@ -4,11 +4,23 @@
   "version": "0.1.0",
   "description": "A local-first side panel for manually filling job application forms.",
   "permissions": ["storage", "activeTab"],
+  "icons": {
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png",
+    "256": "images/icon-256.png",
+    "384": "images/icon-384.png"
+  },
   "background": {
     "service_worker": "src/background.js"
   },
   "action": {
-    "default_title": "打开 Application Fill"
+    "default_title": "打开 Application Fill",
+    "default_icon": {
+      "16": "images/toolbar-16.png",
+      "19": "images/toolbar-19.png",
+      "32": "images/toolbar-32.png",
+      "38": "images/toolbar-38.png"
+    }
   },
   "options_page": "options.html",
   "content_scripts": [
