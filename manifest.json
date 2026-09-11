@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Application Fill",
+  "version": "0.1.0",
+  "description": "A local-first side panel for manually filling job application forms.",
+  "permissions": ["storage", "activeTab"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "打开 Application Fill"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/profile.js", "src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
