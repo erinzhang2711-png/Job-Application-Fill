@@ -15,13 +15,13 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
       "链接与常用问答": [["LinkedIn", ""], ["GitHub", ""], ["作品集", ""], ["期望薪资", ""], ["到岗时间", ""]]
     },
     repeatableGroups: {
-      "教育经历": [[["学校", ""], ["学院/系", ""], ["专业", ""], ["学位", ""], ["GPA", ""], ["毕业时间", ""]]],
-      "项目经历": [[["项目名称", ""], ["项目角色", ""], ["项目日期", ""], ["项目描述", ""]]],
-      "校园经历": [[["组织/社团", ""], ["职务", ""], ["日期", ""], ["经历描述", ""]]]
+      "教育经历": [[["学校", ""], ["学院/系", ""], ["专业", ""], ["学位", ""], ["开始时间", ""], ["毕业时间", ""], ["GPA", ""]]],
+      "项目经历": [[["项目名称", ""], ["项目角色", ""], ["项目职责", ""], ["开始时间", ""], ["结束时间", ""], ["项目描述", ""]]],
+      "校园经历": [[["组织/社团", ""], ["职务", ""], ["开始时间", ""], ["结束时间", ""], ["经历描述", ""]]]
     },
     variantGroups: {},
-    workVariants: { "可替换不同版本": [[["公司", ""], ["职位", ""], ["日期", ""], ["工作描述", ""]]] },
-    internshipVariants: { "可替换不同版本": [[["公司", ""], ["岗位", ""], ["日期", ""], ["实习描述", ""]]] }
+    workVariants: { "可替换不同版本": [[["公司", ""], ["职位", ""], ["开始时间", ""], ["结束时间", ""], ["工作描述", ""]]] },
+    internshipVariants: { "可替换不同版本": [[["公司", ""], ["岗位", ""], ["开始时间", ""], ["结束时间", ""], ["实习描述", ""]]] }
   },
   en: {
     sectionOrder: ["Personal", "Education", APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY, "Projects", "Campus activities", "Skills", "Languages", "Interests", "Personal statement", "Links & common answers"],
@@ -36,13 +36,13 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
       "Links & common answers": [["LinkedIn", ""], ["GitHub", ""], ["Portfolio", ""], ["Expected salary", ""], ["Availability", ""]]
     },
     repeatableGroups: {
-      "Education": [[["School", ""], ["Faculty / department", ""], ["Major", ""], ["Degree", ""], ["GPA", ""], ["Graduation date", ""]]],
-      "Projects": [[["Project name", ""], ["Role", ""], ["Dates", ""], ["Description", ""]]],
-      "Campus activities": [[["Organisation", ""], ["Role", ""], ["Dates", ""], ["Description", ""]]]
+      "Education": [[["School", ""], ["Faculty / department", ""], ["Major", ""], ["Degree", ""], ["Start date", ""], ["Graduation date", ""], ["GPA", ""]]],
+      "Projects": [[["Project name", ""], ["Role", ""], ["Responsibilities", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]],
+      "Campus activities": [[["Organisation", ""], ["Role", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]]
     },
     variantGroups: {},
-    workVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Dates", ""], ["Description", ""]]] },
-    internshipVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Dates", ""], ["Description", ""]]] }
+    workVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]] },
+    internshipVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]] }
   }
 };
 
@@ -57,6 +57,26 @@ function applicationFillRecords(value, fallback) {
 function applicationFillVariants(value, fallback) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : fallback;
   return Object.fromEntries(Object.entries(source).map(([name, records]) => [name, applicationFillRecords(records, [])]));
+}
+
+function applicationFillUpgradeRecords(records, template, aliases = {}) {
+  const templateLabels = new Set(template.map(([label]) => label));
+  return records.map((record) => {
+    const values = new Map(record.map(([label, value]) => [aliases[label] || label, value]));
+    const upgraded = template.map(([label, value]) => [label, values.has(label) ? values.get(label) : value]);
+    for (const [label, value] of values) if (!templateLabels.has(label)) upgraded.push([label, value]);
+    return upgraded;
+  });
+}
+
+function applicationFillDateAliases(locale, title) {
+  if (locale === "zh") {
+    if (title === "项目经历") return { "项目日期": "开始时间" };
+    if (title === "校园经历" || title === "工作经历" || title === "实习经历") return { "日期": "开始时间" };
+  } else if (title === "Projects" || title === "Campus activities" || title === "Work experience" || title === "Internship experience") {
+    return { "Dates": "Start date" };
+  }
+  return {};
 }
 
 function applicationFillMergeProfile(storedProfile) {
@@ -85,18 +105,20 @@ function applicationFillMergeProfile(storedProfile) {
     for (const [title, records] of Object.entries(defaults.repeatableGroups)) {
       const savedRecords = storedLocale.repeatableGroups?.[title] ?? merged[locale].groups[title];
       const wasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(title) || savedRecords;
-      if (wasKept) merged[locale].repeatableGroups[title] = applicationFillRecords(savedRecords, records);
+      if (wasKept) merged[locale].repeatableGroups[title] = applicationFillUpgradeRecords(applicationFillRecords(savedRecords, records), records[0], applicationFillDateAliases(locale, title));
       delete merged[locale].groups[title];
     }
     merged[locale].variantGroups = structuredClone(storedLocale.variantGroups || {});
 
     const legacyWork = merged[locale].groups[defaults.workTitle] || merged[locale].groups[merged[locale].workTitle];
     const workWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_WORK_KEY) || storedLocale.sectionOrder.includes(defaults.workTitle) || storedLocale.workVariants || legacyWork;
-    merged[locale].workVariants = workWasKept ? applicationFillVariants(storedLocale.workVariants, legacyWork ? { [Object.keys(defaults.workVariants)[0]]: legacyWork } : defaults.workVariants) : {};
+    const workTemplate = Object.values(defaults.workVariants)[0][0];
+    merged[locale].workVariants = workWasKept ? Object.fromEntries(Object.entries(applicationFillVariants(storedLocale.workVariants, legacyWork ? { [Object.keys(defaults.workVariants)[0]]: legacyWork } : defaults.workVariants)).map(([name, records]) => [name, applicationFillUpgradeRecords(records, workTemplate, applicationFillDateAliases(locale, defaults.workTitle))])) : {};
     delete merged[locale].groups[defaults.workTitle];
     delete merged[locale].groups[merged[locale].workTitle];
     const internshipWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_INTERNSHIP_KEY) || storedLocale.internshipVariants;
-    merged[locale].internshipVariants = internshipWasKept ? applicationFillVariants(storedLocale.internshipVariants, defaults.internshipVariants) : {};
+    const internshipTemplate = Object.values(defaults.internshipVariants)[0][0];
+    merged[locale].internshipVariants = internshipWasKept ? Object.fromEntries(Object.entries(applicationFillVariants(storedLocale.internshipVariants, defaults.internshipVariants)).map(([name, records]) => [name, applicationFillUpgradeRecords(records, internshipTemplate, applicationFillDateAliases(locale, defaults.internshipTitle))])) : {};
 
     const available = new Set([...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups), ...Object.keys(merged[locale].variantGroups)]);
     if (Object.keys(merged[locale].workVariants).length) available.add(APPLICATION_FILL_WORK_KEY);

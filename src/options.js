@@ -8,10 +8,11 @@
   const internshipKey = APPLICATION_FILL_INTERNSHIP_KEY;
   let profile;
   let locale = "zh";
+  let fieldDrag;
 
   const labels = {
-    zh: { group: "新增资料", work: "工作经历", internship: "实习经历", addVariant: "新增版本", addRecord: "+ 新增一段经历", record: "第 {n} 段", removeRecord: "删除这一段", addGroup: "添加自定义板块", rename: "改名", deleteGroup: "删除板块", remove: "删除", customGroup: "板块名称", customField: "资料名称", duplicate: "该名称已存在。", deleteConfirm: "确定删除这个板块及其全部资料吗？", version: "版本名称", createSection: "新增板块", basic: "基础资料", repeatable: "多段经历", variant: "多版本经历", basicHint: "一组普通字段，例如证书或联系方式", repeatableHint: "可新增多段完整记录，例如教育或项目经历", variantHint: "可新建不同版本，每个版本可新增多段经历", create: "创建", cancel: "取消", initialVariant: "可替换不同版本" },
-    en: { group: "Add field", work: "Work experience", internship: "Internship experience", addVariant: "Add version", addRecord: "+ Add another entry", record: "Entry {n}", removeRecord: "Remove this entry", addGroup: "Add custom section", rename: "Rename", deleteGroup: "Delete section", remove: "Remove", customGroup: "Section name", customField: "Field label", duplicate: "That name already exists.", deleteConfirm: "Delete this section and all of its entries?", version: "Version name", createSection: "Add section", basic: "Basic fields", repeatable: "Multiple entries", variant: "Multiple versions", basicHint: "One set of fields, such as certificates or contact details", repeatableHint: "Add complete entries, such as degrees or projects", variantHint: "Create different versions; each can contain multiple entries", create: "Create", cancel: "Cancel", initialVariant: "Replaceable version" }
+    zh: { group: "新增资料", work: "工作经历", internship: "实习经历", addVariant: "新增版本", addRecord: "+ 新增一段经历", record: "第 {n} 段", removeRecord: "删除这一段", addGroup: "添加自定义板块", rename: "改名", deleteGroup: "删除板块", remove: "删除", drag: "拖动排序", customGroup: "板块名称", customField: "资料名称", duplicate: "该名称已存在。", deleteConfirm: "确定删除这个板块及其全部资料吗？", version: "版本名称", createSection: "新增板块", basic: "基础资料", repeatable: "多段经历", variant: "多版本经历", basicHint: "一组普通字段，例如证书或联系方式", repeatableHint: "可新增多段完整记录，例如教育或项目经历", variantHint: "可新建不同版本，每个版本可新增多段经历", create: "创建", cancel: "取消", initialVariant: "可替换不同版本" },
+    en: { group: "Add field", work: "Work experience", internship: "Internship experience", addVariant: "Add version", addRecord: "+ Add another entry", record: "Entry {n}", removeRecord: "Remove this entry", addGroup: "Add custom section", rename: "Rename", deleteGroup: "Delete section", remove: "Remove", drag: "Drag to reorder", customGroup: "Section name", customField: "Field label", duplicate: "That name already exists.", deleteConfirm: "Delete this section and all of its entries?", version: "Version name", createSection: "Add section", basic: "Basic fields", repeatable: "Multiple entries", variant: "Multiple versions", basicHint: "One set of fields, such as certificates or contact details", repeatableHint: "Add complete entries, such as degrees or projects", variantHint: "Create different versions; each can contain multiple entries", create: "Create", cancel: "Cancel", initialVariant: "Replaceable version" }
   };
   const sectionId = (title) => "section-" + encodeURIComponent(title);
   const escape = (value) => String(value).replace(/[&<>"\x27]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "\x27":"&#39;" })[c]);
@@ -36,7 +37,7 @@
 
   function fieldRow(collection, key, record, index, entry, variant = "") {
     const data = `data-collection="${collection}" data-key="${escape(key)}" data-record="${record}" data-index="${index}" data-variant="${escape(variant)}"`;
-    return `<div class="row"><input data-label ${data} value="${escape(entry[0])}" placeholder="Field label"><input data-value ${data} value="${escape(entry[1])}" placeholder="Value"><button class="delete" data-delete ${data} title="${labels[locale].remove}">×</button></div>`;
+    return `<div class="row" data-field-row ${data}><button type="button" class="drag-handle" draggable="true" data-drag-handle ${data} title="${labels[locale].drag}">⠿</button><input data-label ${data} value="${escape(entry[0])}" placeholder="Field label"><input data-value ${data} value="${escape(entry[1])}" placeholder="Value"><button class="delete" data-delete ${data} title="${labels[locale].remove}">×</button></div>`;
   }
 
   function recordBlock(collection, key, records, record, variant = "") {
@@ -81,6 +82,7 @@
     document.querySelectorAll("[data-rename-section]").forEach((button) => button.addEventListener("click", renameSection));
     document.querySelectorAll("[data-delete-section]").forEach((button) => button.addEventListener("click", deleteSection));
     document.querySelector("[data-new-group]").addEventListener("click", showNewGroupDialog);
+    bindFieldDrag();
   }
 
   function bindSectionNav() {
@@ -92,6 +94,36 @@
       button.addEventListener("dragleave", () => button.classList.remove("drop-target"));
       button.addEventListener("drop", (event) => { event.preventDefault(); moveSection(event.dataTransfer.getData("text/plain"), button.dataset.section); });
     });
+  }
+
+  function bindFieldDrag() {
+    document.querySelectorAll("[data-drag-handle]").forEach((handle) => {
+      handle.addEventListener("dragstart", (event) => {
+        fieldDrag = handle;
+        event.dataTransfer.setData("text/plain", "field");
+        event.dataTransfer.effectAllowed = "move";
+        handle.closest(".row")?.classList.add("dragging");
+      });
+      handle.addEventListener("dragend", () => { fieldDrag?.closest(".row")?.classList.remove("dragging"); fieldDrag = null; });
+    });
+    document.querySelectorAll("[data-field-row]").forEach((row) => {
+      row.addEventListener("dragover", (event) => { if (fieldDrag && sameFieldScope(fieldDrag, row)) { event.preventDefault(); row.classList.add("drop-target"); } });
+      row.addEventListener("dragleave", () => row.classList.remove("drop-target"));
+      row.addEventListener("drop", (event) => { event.preventDefault(); row.classList.remove("drop-target"); moveField(fieldDrag, row); });
+    });
+  }
+
+  function sameFieldScope(source, target) {
+    return source && ["collection", "key", "record", "variant"].every((name) => source.dataset[name] === target.dataset[name]);
+  }
+
+  function moveField(source, target) {
+    if (!sameFieldScope(source, target)) return;
+    const entries = entriesFor(source), from = Number(source.dataset.index), to = Number(target.dataset.index);
+    if (from === to) return;
+    const [field] = entries.splice(from, 1);
+    entries.splice(to, 0, field);
+    render();
   }
 
   function recordsFor(el) {
