@@ -3,7 +3,7 @@
   "name": "Job Application Fill",
   "version": "0.1.0",
   "description": "A local-first side panel for manually filling job application forms.",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage"],
   "icons": {
     "48": "images/icon-48.png",
     "128": "images/icon-128.png",

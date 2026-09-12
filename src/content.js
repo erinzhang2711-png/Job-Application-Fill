@@ -53,9 +53,11 @@
 
   function fill(value) {
     if (!activeField || !document.contains(activeField) || !value) return;
-    if (nativeSet(activeField, value)) {
-      activeField.style.outline = "2px solid #4f7cff";
-      setTimeout(() => { if (activeField) activeField.style.outline = ""; }, 900);
+    const field = activeField;
+    if (nativeSet(field, value)) {
+      const previousOutline = field.style.outline;
+      field.style.outline = "2px solid #4f7cff";
+      setTimeout(() => { field.style.outline = previousOutline; }, 900);
     }
   }
 
