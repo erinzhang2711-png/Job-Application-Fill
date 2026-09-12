@@ -140,10 +140,10 @@
   }
   function showNewGroupDialog() {
     const copy = labels[locale];
-    sectionDialog.innerHTML = `<form method="dialog" class="section-form"><h2>${copy.createSection}</h2><label>${copy.customGroup}<input name="title" required autofocus></label><fieldset><legend>${copy.createSection}</legend><label><input type="radio" name="type" value="group" checked><span><strong>${copy.basic}</strong><small>${copy.basicHint}</small></span></label><label><input type="radio" name="type" value="repeatable"><span><strong>${copy.repeatable}</strong><small>${copy.repeatableHint}</small></span></label><label><input type="radio" name="type" value="variant"><span><strong>${copy.variant}</strong><small>${copy.variantHint}</small></span></label></fieldset><div class="dialog-actions"><button value="cancel" class="secondary">${copy.cancel}</button><button value="create">${copy.create}</button></div></form>`;
+    sectionDialog.innerHTML = `<form method="dialog" class="section-form"><h2>${copy.createSection}</h2><label>${copy.customGroup}<input name="title" required autofocus></label><fieldset><legend>${copy.createSection}</legend><label><input type="radio" name="type" value="group" checked><span><strong>${copy.basic}</strong><small>${copy.basicHint}</small></span></label><label><input type="radio" name="type" value="repeatable"><span><strong>${copy.repeatable}</strong><small>${copy.repeatableHint}</small></span></label><label><input type="radio" name="type" value="variant"><span><strong>${copy.variant}</strong><small>${copy.variantHint}</small></span></label></fieldset><div class="dialog-actions"><button type="button" data-cancel-section class="secondary">${copy.cancel}</button><button value="create">${copy.create}</button></div></form>`;
+    sectionDialog.querySelector("[data-cancel-section]").addEventListener("click", () => sectionDialog.close());
     sectionDialog.querySelector("form").addEventListener("submit", (event) => {
       event.preventDefault();
-      if (event.submitter?.value === "cancel") { sectionDialog.close(); return; }
       const form = event.currentTarget, name = new FormData(form).get("title")?.trim(), type = new FormData(form).get("type"), current = profile[locale];
       if (!name) return;
       if (current.groups[name] || current.repeatableGroups[name] || current.variantGroups[name]) { window.alert(copy.duplicate); return; }
