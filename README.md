@@ -16,10 +16,10 @@
 
 - 兼容 Chrome 与 Safari，使用同一套扩展源代码。
 - 中英文资料库彼此独立，可分别维护。
-- 支持基础资料、教育经历、工作经历、实习经历、项目经历、校园经历、技能、语言能力、兴趣爱好、个人评价及常用问答。
-- 教育、项目与校园经历可新增多段完整记录，例如本科 / 硕士或多个项目。
+- 支持基础资料、教育经历、工作经历、实习经历、项目经历、校园活动经历、技能、语言能力、证书、奖励信息、兴趣爱好、个人评价及常用问答。
+- 教育、项目、校园活动、语言能力、证书与奖励信息可新增多段完整记录，例如本科 / 硕士、多个项目或多张证书。
 - 工作经历和实习经历都可建立多个版本，例如 Finance、Tech 或 AI PM；每个版本还可新增多段经历。
-- 教育经历支持开始与毕业时间；工作、实习、项目、校园经历支持开始与结束时间，项目经历另含项目职责字段。
+- 教育经历支持开始与毕业时间；工作、实习、项目、校园活动经历支持开始与结束时间，项目经历另含项目职责字段；语言能力含语言证书、成绩与获取日期。
 - 可新增、改名、删除大板块；新增时可选择基础资料、多段经历或多版本经历，顶部板块标签可拖拽排序，底下的内容和右侧填入面板会同步调整。
 - 字段左侧有拖拽把手，可按自己的习惯调整字段顺序。
 - 支持普通输入框、多行文本、常规下拉选项、复选框、单选框与可编辑文本区域。
@@ -160,10 +160,10 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 
 - One shared codebase for Chrome and Safari.
 - Separate Chinese and English profiles.
-- Personal details, education, work experience, internship variants, projects, campus activities, skills, languages, interests, personal statement, and common answers.
-- Add complete records for multiple degrees, projects, and campus activities.
+- Personal details, education, work experience, internship variants, projects, campus activities, skills, languages, certificates, awards, interests, personal statement, and common answers.
+- Add complete records for multiple degrees, projects, campus activities, languages, certificates, and awards.
 - Multiple work and internship versions, such as Finance, Tech, or AI PM; each version can contain multiple entries.
-- Education includes start and graduation dates; work, internship, project, and campus entries include start and end dates. Projects also include responsibilities.
+- Education includes start and graduation dates; work, internship, project, and campus entries include start and end dates. Projects also include responsibilities; language entries include a certificate, score, and date obtained.
 - Rename, delete, add, and drag-to-reorder profile sections. New sections can be basic fields, multiple entries, or multiple versions; the editor and side panel share the same order.
 - Reorder fields with the drag handle next to each field.
 - Local browser storage only: no account, server, analytics, or automatic submission.

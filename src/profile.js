@@ -1,15 +1,16 @@
 const APPLICATION_FILL_WORK_KEY = "__application_fill_work__";
 const APPLICATION_FILL_INTERNSHIP_KEY = "__application_fill_internship__";
+const APPLICATION_FILL_PROFILE_VERSION = 3;
 
 const APPLICATION_FILL_DEFAULT_PROFILE = {
+  profileVersion: APPLICATION_FILL_PROFILE_VERSION,
   zh: {
-    sectionOrder: ["基础资料", "教育经历", APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY, "项目经历", "校园经历", "技能", "语言能力", "兴趣爱好", "个人评价", "链接与常用问答"],
+    sectionOrder: ["基础资料", "教育经历", APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY, "项目经历", "校园活动经历", "技能", "语言能力", "证书", "奖励信息", "兴趣爱好", "个人评价", "链接与常用问答"],
     workTitle: "工作经历",
     internshipTitle: "实习经历",
     groups: {
       "基础资料": [["中文姓名", ""], ["中文姓", ""], ["中文名", ""], ["英文姓名", ""], ["英文名（Given name）", ""], ["英文姓（Family name）", ""], ["Preferred name", ""], ["性别", ""], ["出生日期", ""], ["国籍/地区", ""], ["中国大陆身份证", ""], ["香港身份证", ""], ["护照号码", ""], ["电子邮箱", ""], ["手机号", ""], ["微信号", ""], ["中文地址", ""], ["邮政编码", ""]],
       "技能": [["技能", ""], ["编程语言", "Python"], ["工具 / 软件", ""], ["证书", ""]],
-      "语言能力": [["中文", "母语"], ["英文", ""]],
       "兴趣爱好": [["兴趣爱好", ""]],
       "个人评价": [["个人评价", ""]],
       "链接与常用问答": [["LinkedIn", ""], ["GitHub", ""], ["作品集", ""], ["期望薪资", ""], ["到岗时间", ""]]
@@ -17,20 +18,22 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
     repeatableGroups: {
       "教育经历": [[["学校", ""], ["学院/系", ""], ["专业", ""], ["学位", ""], ["开始时间", ""], ["毕业时间", ""], ["GPA", ""]]],
       "项目经历": [[["项目名称", ""], ["项目角色", ""], ["项目职责", ""], ["开始时间", ""], ["结束时间", ""], ["项目描述", ""]]],
-      "校园经历": [[["组织/社团", ""], ["职务", ""], ["开始时间", ""], ["结束时间", ""], ["经历描述", ""]]]
+      "校园活动经历": [[["组织/社团", ""], ["职务", ""], ["开始时间", ""], ["结束时间", ""], ["经历描述", ""]]],
+      "语言能力": [[["语言类型", ""], ["掌握程度", ""], ["语言证书", ""], ["成绩", ""], ["获取日期", ""]]],
+      "证书": [[["证书类型", ""], ["证书名称", ""], ["生效时间", ""]]],
+      "奖励信息": [[["奖励名称", ""], ["获奖时间", ""], ["授予单位", ""], ["证明人", ""]]]
     },
     variantGroups: {},
     workVariants: { "可替换不同版本": [[["公司", ""], ["职位", ""], ["开始时间", ""], ["结束时间", ""], ["工作描述", ""]]] },
     internshipVariants: { "可替换不同版本": [[["公司", ""], ["岗位", ""], ["开始时间", ""], ["结束时间", ""], ["实习描述", ""]]] }
   },
   en: {
-    sectionOrder: ["Personal", "Education", APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY, "Projects", "Campus activities", "Skills", "Languages", "Interests", "Personal statement", "Links & common answers"],
+    sectionOrder: ["Personal", "Education", APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY, "Projects", "Campus activities", "Skills", "Languages", "Certificates", "Awards", "Interests", "Personal statement", "Links & common answers"],
     workTitle: "Work experience",
     internshipTitle: "Internship experience",
     groups: {
       "Personal": [["First / given name", ""], ["Last / family name", ""], ["Preferred name", ""], ["Full legal name", ""], ["Chinese name", ""], ["Gender", ""], ["Date of birth", ""], ["Nationality / region", ""], ["Mainland China ID", ""], ["Hong Kong ID", ""], ["Passport number", ""], ["Email", ""], ["Phone", ""], ["WeChat", ""], ["English address", ""], ["Postal code", ""]],
       "Skills": [["Skills", ""], ["Programming languages", "Python"], ["Tools / software", ""], ["Certificates", ""]],
-      "Languages": [["Chinese", "Native"], ["English", ""]],
       "Interests": [["Interests", ""]],
       "Personal statement": [["Personal statement", ""]],
       "Links & common answers": [["LinkedIn", ""], ["GitHub", ""], ["Portfolio", ""], ["Expected salary", ""], ["Availability", ""]]
@@ -38,7 +41,10 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
     repeatableGroups: {
       "Education": [[["School", ""], ["Faculty / department", ""], ["Major", ""], ["Degree", ""], ["Start date", ""], ["Graduation date", ""], ["GPA", ""]]],
       "Projects": [[["Project name", ""], ["Role", ""], ["Responsibilities", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]],
-      "Campus activities": [[["Organisation", ""], ["Role", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]]
+      "Campus activities": [[["Organisation", ""], ["Role", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]],
+      "Languages": [[["Language", ""], ["Proficiency", ""], ["Language certificate", ""], ["Score", ""], ["Date obtained", ""]]],
+      "Certificates": [[["Certificate type", ""], ["Certificate name", ""], ["Effective date", ""]]],
+      "Awards": [[["Award name", ""], ["Date received", ""], ["Awarding organisation", ""], ["Referee", ""]]]
     },
     variantGroups: {},
     workVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Start date", ""], ["End date", ""], ["Description", ""]]] },
@@ -72,23 +78,46 @@ function applicationFillUpgradeRecords(records, template, aliases = {}) {
 function applicationFillDateAliases(locale, title) {
   if (locale === "zh") {
     if (title === "项目经历") return { "项目日期": "开始时间" };
-    if (title === "校园经历" || title === "工作经历" || title === "实习经历") return { "日期": "开始时间" };
+    if (title === "校园经历" || title === "校园活动经历" || title === "工作经历" || title === "实习经历") return { "日期": "开始时间" };
   } else if (title === "Projects" || title === "Campus activities" || title === "Work experience" || title === "Internship experience") {
     return { "Dates": "Start date" };
   }
   return {};
 }
 
+function applicationFillSectionAliases(locale) {
+  return locale === "zh" ? { "校园经历": "校园活动经历" } : {};
+}
+
+function applicationFillUpgradeLanguageRecords(value, template, locale) {
+  if (Array.isArray(value) && Array.isArray(value[0]) && !Array.isArray(value[0][0])) {
+    const labels = locale === "zh" ? ["语言类型", "掌握程度"] : ["Language", "Proficiency"];
+    return value.filter(([language]) => language).map(([language, proficiency]) => applicationFillUpgradeRecords([[[labels[0], language], [labels[1], proficiency]]], template)[0]);
+  }
+  return applicationFillUpgradeRecords(applicationFillRecords(value, template), template);
+}
+
 function applicationFillMergeProfile(storedProfile) {
   const merged = structuredClone(APPLICATION_FILL_DEFAULT_PROFILE);
   if (!storedProfile) return merged;
+  const storedVersion = Number(storedProfile.profileVersion || 0);
 
   for (const locale of ["zh", "en"]) {
     const storedLocale = storedProfile[locale];
     if (!storedLocale) continue;
     const defaults = APPLICATION_FILL_DEFAULT_PROFILE[locale];
     const hasSavedOrder = Array.isArray(storedLocale.sectionOrder);
-    merged[locale].groups = structuredClone(storedLocale.groups || {});
+    const aliases = applicationFillSectionAliases(locale);
+    const savedGroups = structuredClone(storedLocale.groups || {});
+    const savedRepeatableGroups = structuredClone(storedLocale.repeatableGroups || {});
+    for (const [from, to] of Object.entries(aliases)) {
+      if (!savedGroups[to] && savedGroups[from]) savedGroups[to] = savedGroups[from];
+      if (!savedRepeatableGroups[to] && savedRepeatableGroups[from]) savedRepeatableGroups[to] = savedRepeatableGroups[from];
+      delete savedGroups[from];
+      delete savedRepeatableGroups[from];
+    }
+    const savedOrder = (storedLocale.sectionOrder || []).map((item) => aliases[item] || item);
+    merged[locale].groups = savedGroups;
     merged[locale].workTitle = storedLocale.workTitle || defaults.workTitle;
     merged[locale].internshipTitle = storedLocale.internshipTitle || defaults.internshipTitle;
 
@@ -103,9 +132,10 @@ function applicationFillMergeProfile(storedProfile) {
 
     merged[locale].repeatableGroups = {};
     for (const [title, records] of Object.entries(defaults.repeatableGroups)) {
-      const savedRecords = storedLocale.repeatableGroups?.[title] ?? merged[locale].groups[title];
-      const wasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(title) || savedRecords;
-      if (wasKept) merged[locale].repeatableGroups[title] = applicationFillUpgradeRecords(applicationFillRecords(savedRecords, records), records[0], applicationFillDateAliases(locale, title));
+      const savedRecords = savedRepeatableGroups[title] ?? merged[locale].groups[title];
+      const introducedInThisVersion = storedVersion < APPLICATION_FILL_PROFILE_VERSION && [locale === "zh" ? "证书" : "Certificates", locale === "zh" ? "奖励信息" : "Awards"].includes(title);
+      const wasKept = !hasSavedOrder || savedOrder.includes(title) || savedRecords || introducedInThisVersion;
+      if (wasKept) merged[locale].repeatableGroups[title] = title === (locale === "zh" ? "语言能力" : "Languages") ? applicationFillUpgradeLanguageRecords(savedRecords, records[0], locale) : applicationFillUpgradeRecords(applicationFillRecords(savedRecords, records), records[0], applicationFillDateAliases(locale, title));
       delete merged[locale].groups[title];
     }
     merged[locale].variantGroups = structuredClone(storedLocale.variantGroups || {});
@@ -123,7 +153,14 @@ function applicationFillMergeProfile(storedProfile) {
     const available = new Set([...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups), ...Object.keys(merged[locale].variantGroups)]);
     if (Object.keys(merged[locale].workVariants).length) available.add(APPLICATION_FILL_WORK_KEY);
     if (Object.keys(merged[locale].internshipVariants).length) available.add(APPLICATION_FILL_INTERNSHIP_KEY);
-    const requestedOrder = (hasSavedOrder ? storedLocale.sectionOrder : defaults.sectionOrder).map((item) => item === defaults.workTitle ? APPLICATION_FILL_WORK_KEY : item);
+    const requestedOrder = (hasSavedOrder ? savedOrder : defaults.sectionOrder).map((item) => item === defaults.workTitle ? APPLICATION_FILL_WORK_KEY : item);
+    if (storedVersion < APPLICATION_FILL_PROFILE_VERSION) {
+      for (const section of defaults.sectionOrder) {
+        if (!available.has(section) || requestedOrder.includes(section)) continue;
+        const next = defaults.sectionOrder.slice(defaults.sectionOrder.indexOf(section) + 1).find((item) => requestedOrder.includes(item));
+        requestedOrder.splice(next ? requestedOrder.indexOf(next) : requestedOrder.length, 0, section);
+      }
+    }
     merged[locale].sectionOrder = requestedOrder.filter((item, index) => available.has(item) && requestedOrder.indexOf(item) === index);
     for (const group of [...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups), ...Object.keys(merged[locale].variantGroups)]) if (!merged[locale].sectionOrder.includes(group)) merged[locale].sectionOrder.push(group);
     for (const key of [APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY]) if (available.has(key) && !merged[locale].sectionOrder.includes(key)) merged[locale].sectionOrder.push(key);
