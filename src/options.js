@@ -2,6 +2,7 @@
   const api = globalThis.browser ?? globalThis.chrome;
   const app = document.querySelector("#app");
   const sectionNav = document.querySelector("#section-nav");
+  const sectionLinks = document.querySelector("#section-links");
   const sectionDialog = document.querySelector("#section-dialog");
   const workKey = APPLICATION_FILL_WORK_KEY;
   const internshipKey = APPLICATION_FILL_INTERNSHIP_KEY;
@@ -68,7 +69,7 @@
     const sections = orderedSections(current);
     app.innerHTML = sections.map((section) => section.kind === "group" ? groupSection(section, current) : section.kind === "repeatable" ? repeatableSection(section, current) : variantSection(section, current)).join("");
     [...app.querySelectorAll("section")].forEach((section, index) => { section.id = sectionId(sections[index].key); });
-    sectionNav.innerHTML = sections.map((section) => `<button class="jump" draggable="true" data-section="${escape(section.key)}" data-jump="${sectionId(section.key)}">${escape(section.title)}</button>`).join("") + `<button class="jump add-section" data-new-group>+ ${labels[locale].addGroup}</button>`;
+    sectionLinks.innerHTML = sections.map((section) => `<button class="jump" draggable="true" data-section="${escape(section.key)}" data-jump="${sectionId(section.key)}">${escape(section.title)}</button>`).join("") + `<button class="jump add-section" data-new-group>+ ${labels[locale].addGroup}</button>`;
     bindSectionNav();
     document.querySelectorAll("[data-label], [data-value]").forEach((input) => input.addEventListener("input", update));
     document.querySelectorAll("[data-delete]").forEach((button) => button.addEventListener("click", removeField));
@@ -83,10 +84,10 @@
   }
 
   function bindSectionNav() {
-    sectionNav.querySelectorAll("[data-jump]").forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.jump)?.scrollIntoView({ behavior: "smooth", block: "start" })));
-    sectionNav.querySelectorAll("[data-section]").forEach((button) => {
+    sectionLinks.querySelectorAll("[data-jump]").forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.jump)?.scrollIntoView({ behavior: "smooth", block: "start" })));
+    sectionLinks.querySelectorAll("[data-section]").forEach((button) => {
       button.addEventListener("dragstart", (event) => { event.dataTransfer.setData("text/plain", button.dataset.section); event.dataTransfer.effectAllowed = "move"; button.classList.add("dragging"); });
-      button.addEventListener("dragend", () => sectionNav.querySelectorAll(".jump").forEach((item) => item.classList.remove("dragging", "drop-target")));
+      button.addEventListener("dragend", () => sectionLinks.querySelectorAll(".jump").forEach((item) => item.classList.remove("dragging", "drop-target")));
       button.addEventListener("dragover", (event) => { event.preventDefault(); button.classList.add("drop-target"); });
       button.addEventListener("dragleave", () => button.classList.remove("drop-target"));
       button.addEventListener("drop", (event) => { event.preventDefault(); moveSection(event.dataTransfer.getData("text/plain"), button.dataset.section); });
