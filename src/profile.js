@@ -17,7 +17,7 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
     },
     repeatableGroups: {
       "教育经历": [[["学校", ""], ["学院/系", ""], ["专业", ""], ["学位", ""], ["开始时间", ""], ["毕业时间", ""], ["GPA", ""]]],
-      "项目经历": [[["项目名称", ""], ["项目角色", ""], ["项目职责", ""], ["开始时间", ""], ["结束时间", ""], ["项目描述", ""]]],
+      "项目经历": [[["项目名称", ""], ["项目角色", ""], ["职责描述", ""], ["开始时间", ""], ["结束时间", ""], ["项目描述", ""]]],
       "校园活动经历": [[["组织/社团", ""], ["职务", ""], ["开始时间", ""], ["结束时间", ""], ["经历描述", ""]]],
       "语言能力": [[["语言类型", ""], ["掌握程度", ""], ["语言证书", ""], ["成绩", ""], ["获取日期", ""]]],
       "证书": [[["证书类型", ""], ["证书名称", ""], ["生效时间", ""]]],
@@ -77,7 +77,7 @@ function applicationFillUpgradeRecords(records, template, aliases = {}) {
 
 function applicationFillDateAliases(locale, title) {
   if (locale === "zh") {
-    if (title === "项目经历") return { "项目日期": "开始时间" };
+    if (title === "项目经历") return { "项目日期": "开始时间", "项目职责": "职责描述" };
     if (title === "校园经历" || title === "校园活动经历" || title === "工作经历" || title === "实习经历") return { "日期": "开始时间" };
   } else if (title === "Projects" || title === "Campus activities" || title === "Work experience" || title === "Internship experience") {
     return { "Dates": "Start date" };
