@@ -69,6 +69,7 @@
   }
 
   function render() {
+    const scrollY = window.scrollY;
     const current = profile[locale];
     const sections = orderedSections(current);
     app.innerHTML = sections.map((section) => section.kind === "group" ? groupSection(section, current) : section.kind === "repeatable" ? repeatableSection(section, current) : variantSection(section, current)).join("");
@@ -88,6 +89,7 @@
     bindFieldDrag();
     bindRecordDrag();
     document.querySelectorAll("textarea[data-value]").forEach(resizeTextarea);
+    requestAnimationFrame(() => window.scrollTo(window.scrollX, scrollY));
   }
 
   function bindSectionNav() {
