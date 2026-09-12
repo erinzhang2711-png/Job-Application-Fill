@@ -108,7 +108,8 @@ https://github.com/erinzhang2711-png/Job-Application-Fill
 2. 在 **TARGETS** 中先选择主应用 **Job Application Fill**，打开 **Signing & Capabilities**。
 3. 勾选 **Automatically manage signing**，在 **Team** 中选择自己的 Apple ID / Personal Team。
 4. 再选择 **Job Application Fill Extension** target，重复上一步，并确保它选择的是**同一个 Team**。
-5. 如果 Xcode 提示 Bundle Identifier 已被占用，请在主应用 target 修改成一个更独特的值；Extension target 会使用相同前缀加扩展后缀。不要在已经安装并保存资料后随意改变它。
+5. **请检查主应用的 Bundle Identifier**：将主应用 target 的值改成与命令中 `--bundle-identifier` **完全相同**的值，例如 `com.yourname.jobapplicationfill`。Safari Web Extension Packager 有时会给主应用自动生成另一个 Identifier；如果不改，Xcode 会报“Embedded binary's bundle identifier is not prefixed…”错误。
+6. 再选择 **Job Application Fill Extension** target，确认其 Bundle Identifier 是主应用值加 `.Extension`，例如 `com.yourname.jobapplicationfill.Extension`。不要在已经安装并保存资料后随意改变主应用的 Identifier。
 
 ### 构建、安装并启用
 
@@ -225,8 +226,10 @@ Do not choose my Apple Team, sign in to an account, approve signing, or grant Sa
 
 3. Open the generated `Job Application Fill.xcodeproj` in Xcode.
 4. Select the project, then configure **Signing & Capabilities** for both the app target and the extension target. Enable **Automatically manage signing** and choose the same Apple ID / Personal Team for both.
-5. Select **My Mac**, then press `⌘R` or click `▶` to build and run the app.
-6. In Safari, open **Safari → Settings → Extensions**, find **Job Application Fill**, and enable it. Grant website access only as needed.
+5. In the main app target, set the Bundle Identifier to exactly the value passed in `--bundle-identifier`, for example `com.yourname.jobapplicationfill`. Safari Web Extension Packager can otherwise generate a different parent identifier, which causes an “Embedded binary's bundle identifier is not prefixed…” build error.
+6. In the extension target, confirm that its Bundle Identifier is the main app identifier plus `.Extension`, for example `com.yourname.jobapplicationfill.Extension`.
+7. Select **My Mac**, then press `⌘R` or click `▶` to build and run the app.
+8. In Safari, open **Safari → Settings → Extensions**, find **Job Application Fill**, and enable it. Grant website access only as needed.
 
 Use the same Bundle Identifier for future builds. To update, regenerate the project from the latest repository files (the simplest option) or copy the updated extension files into the generated Extension target’s `Resources` folder and build in Xcode again.
 
