@@ -26,6 +26,7 @@
 - 所有资料值都支持换行；空白或单行内容保持紧凑，多行内容最多扩展到固定高度，超出部分可在框内滚动查看。
 - 编辑、拖拽排序、增删字段或板块会自动保存到浏览器本地，顶部“保存资料”可用于手动确认。
 - 同一板块或同一版本中的多段经历，也可通过“第几段”标题旁的拖拽把手调整顺序。
+- 工作、实习及自定义多版本经历中的不同版本，也可通过版本名称左侧的拖拽把手调整顺序。
 - 支持普通输入框、多行文本、常规下拉选项、复选框、单选框与可编辑文本区域。
 - 资料保存在浏览器本地：没有账号、服务器、追踪或自动提交功能。
 
@@ -174,6 +175,7 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 - Every profile value supports line breaks. Empty and single-line values stay compact, while multi-line values grow to a fixed maximum height and then scroll within the field.
 - Editing, reordering, and adding or removing fields or sections automatically saves to local browser storage; the top save button remains available for manual confirmation.
 - Reorder multiple entries within the same section or version using the drag handle beside each entry heading.
+- Reorder work, internship, and custom multi-version profiles using the drag handle beside each version name.
 - Local browser storage only: no account, server, analytics, or automatic submission.
 
 ### How to use it

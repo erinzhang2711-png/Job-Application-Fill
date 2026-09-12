@@ -9,6 +9,7 @@
   let locale = "zh";
   let fieldDrag;
   let recordDrag;
+  let variantDrag;
   let saveTimer;
 
   const labels = {
@@ -65,7 +66,8 @@
 
   function variantSection(section, current) {
     const variants = variantStore(section.kind, section.key, current);
-    return `<section><div class="section-heading"><h2>${escape(section.title)}</h2>${controls(section.key, section.kind)}</div>${Object.entries(variants).map(([name, records]) => `<div class="variant"><div class="variant-head"><input class="variant-name" data-rename-variant="${escape(name)}" data-kind="${section.kind}" data-key="${escape(section.key)}" value="${escape(name)}" aria-label="Version name"></div>${records.map((_, record) => recordBlock(section.kind, section.key, records, record, name)).join("")}<button class="add" data-add-record data-collection="${section.kind}" data-key="${escape(section.key)}" data-variant="${escape(name)}">${labels[locale].addRecord}</button></div>`).join("")}<p><button class="add" data-new-variant data-kind="${section.kind}" data-key="${escape(section.key)}">+ ${labels[locale].addVariant}</button></p></section>`;
+    const canDrag = Object.keys(variants).length > 1;
+    return `<section><div class="section-heading"><h2>${escape(section.title)}</h2>${controls(section.key, section.kind)}</div>${Object.entries(variants).map(([name, records]) => `<div class="variant" data-variant-block data-kind="${section.kind}" data-key="${escape(section.key)}" data-variant="${escape(name)}"><div class="variant-head">${canDrag ? `<button type="button" class="variant-drag-handle" draggable="true" data-variant-drag data-kind="${section.kind}" data-key="${escape(section.key)}" data-variant="${escape(name)}" title="${labels[locale].drag}">⠿</button>` : ""}<input class="variant-name" data-rename-variant="${escape(name)}" data-kind="${section.kind}" data-key="${escape(section.key)}" value="${escape(name)}" aria-label="Version name"></div>${records.map((_, record) => recordBlock(section.kind, section.key, records, record, name)).join("")}<button class="add" data-add-record data-collection="${section.kind}" data-key="${escape(section.key)}" data-variant="${escape(name)}">${labels[locale].addRecord}</button></div>`).join("")}<p><button class="add" data-new-variant data-kind="${section.kind}" data-key="${escape(section.key)}">+ ${labels[locale].addVariant}</button></p></section>`;
   }
 
   function render() {
@@ -88,6 +90,7 @@
     document.querySelector("[data-new-group]").addEventListener("click", showNewGroupDialog);
     bindFieldDrag();
     bindRecordDrag();
+    bindVariantDrag();
     document.querySelectorAll("textarea[data-value]").forEach(resizeTextarea);
     requestAnimationFrame(() => window.scrollTo(window.scrollX, scrollY));
   }
@@ -137,6 +140,23 @@
     });
   }
 
+  function bindVariantDrag() {
+    document.querySelectorAll("[data-variant-drag]").forEach((handle) => {
+      handle.addEventListener("dragstart", (event) => {
+        variantDrag = handle;
+        event.dataTransfer.setData("text/plain", "variant");
+        event.dataTransfer.effectAllowed = "move";
+        handle.closest("[data-variant-block]")?.classList.add("dragging");
+      });
+      handle.addEventListener("dragend", () => { variantDrag?.closest("[data-variant-block]")?.classList.remove("dragging"); variantDrag = null; });
+    });
+    document.querySelectorAll("[data-variant-block]").forEach((variant) => {
+      variant.addEventListener("dragover", (event) => { if (sameVariantScope(variantDrag, variant)) { event.preventDefault(); variant.classList.add("drop-target"); } });
+      variant.addEventListener("dragleave", () => variant.classList.remove("drop-target"));
+      variant.addEventListener("drop", (event) => { event.preventDefault(); variant.classList.remove("drop-target"); moveVariant(variantDrag, variant); });
+    });
+  }
+
   function sameFieldScope(source, target) {
     return source && ["collection", "key", "record", "variant"].every((name) => source.dataset[name] === target.dataset[name]);
   }
@@ -161,6 +181,27 @@
     if (from === to) return;
     const [record] = records.splice(from, 1);
     records.splice(to, 0, record);
+    render();
+    void saveProfile();
+  }
+
+  function sameVariantScope(source, target) {
+    return source && ["kind", "key"].every((name) => source.dataset[name] === target.dataset[name]);
+  }
+
+  function moveVariant(source, target) {
+    if (!sameVariantScope(source, target)) return;
+    const variants = variantStore(source.dataset.kind, source.dataset.key);
+    const entries = Object.entries(variants);
+    const from = entries.findIndex(([name]) => name === source.dataset.variant);
+    const to = entries.findIndex(([name]) => name === target.dataset.variant);
+    if (from < 0 || to < 0 || from === to) return;
+    const [variant] = entries.splice(from, 1);
+    entries.splice(to, 0, variant);
+    const reordered = Object.fromEntries(entries);
+    if (source.dataset.kind === "work") profile[locale].workVariants = reordered;
+    else if (source.dataset.kind === "internship") profile[locale].internshipVariants = reordered;
+    else profile[locale].variantGroups[source.dataset.key] = reordered;
     render();
     void saveProfile();
   }
