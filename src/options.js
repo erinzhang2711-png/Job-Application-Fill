@@ -170,7 +170,14 @@
     return variantStore(el.dataset.collection, el.dataset.key, current)[el.dataset.variant];
   }
   function entriesFor(el) { return recordsFor(el)[Number(el.dataset.record)]; }
-  function resizeTextarea(textarea) { textarea.style.height = "auto"; textarea.style.height = `${textarea.scrollHeight}px`; }
+  function resizeTextarea(textarea) {
+    const minHeight = 43;
+    const maxHeight = 150;
+    textarea.style.height = `${minHeight}px`;
+    const contentHeight = Math.max(minHeight, textarea.scrollHeight);
+    textarea.style.height = `${Math.min(contentHeight, maxHeight)}px`;
+    textarea.style.overflowY = contentHeight > maxHeight ? "auto" : "hidden";
+  }
   function update(event) { const el = event.target; entriesFor(el)[Number(el.dataset.index)][el.hasAttribute("data-label") ? 0 : 1] = el.value; if (el instanceof HTMLTextAreaElement) resizeTextarea(el); scheduleSave(); }
   function removeField(event) { const el = event.currentTarget; entriesFor(el).splice(Number(el.dataset.index), 1); render(); void saveProfile(); }
   function addField(event) { const el = event.currentTarget; entriesFor(el).push(["", ""]); render(); void saveProfile(); }
