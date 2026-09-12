@@ -173,6 +173,13 @@
   function resizeTextarea(textarea) {
     const minHeight = 43;
     const maxHeight = 150;
+    const isCompact = !textarea.value.includes("\n") && textarea.value.trim().length <= 120;
+    textarea.classList.toggle("compact-value", isCompact);
+    if (isCompact) {
+      textarea.style.height = "";
+      textarea.style.overflowY = "hidden";
+      return;
+    }
     textarea.style.height = `${minHeight}px`;
     const contentHeight = Math.max(minHeight, textarea.scrollHeight);
     textarea.style.height = `${Math.min(contentHeight, maxHeight)}px`;
