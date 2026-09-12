@@ -9,6 +9,7 @@
   let profile;
   let locale = "zh";
   let fieldDrag;
+  let recordDrag;
 
   const labels = {
     zh: { group: "新增资料", work: "工作经历", internship: "实习经历", addVariant: "新增版本", addRecord: "+ 新增一段经历", record: "第 {n} 段", removeRecord: "删除这一段", addGroup: "添加自定义板块", rename: "改名", deleteGroup: "删除板块", remove: "删除", drag: "拖动排序", customGroup: "板块名称", customField: "资料名称", duplicate: "该名称已存在。", deleteConfirm: "确定删除这个板块及其全部资料吗？", version: "版本名称", createSection: "新增板块", basic: "基础资料", repeatable: "多段经历", variant: "多版本经历", basicHint: "一组普通字段，例如证书或联系方式", repeatableHint: "可新增多段完整记录，例如教育或项目经历", variantHint: "可新建不同版本，每个版本可新增多段经历", create: "创建", cancel: "取消", initialVariant: "可替换不同版本" },
@@ -43,7 +44,8 @@
   function recordBlock(collection, key, records, record, variant = "") {
     const entries = records[record];
     const data = `data-collection="${collection}" data-key="${escape(key)}" data-record="${record}" data-variant="${escape(variant)}"`;
-    return `<div class="record"><div class="record-heading"><h3>${labels[locale].record.replace("{n}", record + 1)}</h3>${records.length > 1 ? `<button data-delete-record ${data}>${labels[locale].removeRecord}</button>` : ""}</div>${entries.map((entry, index) => fieldRow(collection, key, record, index, entry, variant)).join("")}<button class="add" data-add-field ${data}>+ ${labels[locale].group}</button></div>`;
+    const drag = records.length > 1 ? `<button type="button" class="record-drag-handle" draggable="true" data-record-drag ${data} title="${labels[locale].drag}">⠿</button>` : "";
+    return `<div class="record" data-record-block ${data}><div class="record-heading"><div class="record-title">${drag}<h3>${labels[locale].record.replace("{n}", record + 1)}</h3></div>${records.length > 1 ? `<button data-delete-record ${data}>${labels[locale].removeRecord}</button>` : ""}</div>${entries.map((entry, index) => fieldRow(collection, key, record, index, entry, variant)).join("")}<button class="add" data-add-field ${data}>+ ${labels[locale].group}</button></div>`;
   }
 
   function controls(key, kind) {
@@ -83,6 +85,7 @@
     document.querySelectorAll("[data-delete-section]").forEach((button) => button.addEventListener("click", deleteSection));
     document.querySelector("[data-new-group]").addEventListener("click", showNewGroupDialog);
     bindFieldDrag();
+    bindRecordDrag();
   }
 
   function bindSectionNav() {
@@ -113,6 +116,23 @@
     });
   }
 
+  function bindRecordDrag() {
+    document.querySelectorAll("[data-record-drag]").forEach((handle) => {
+      handle.addEventListener("dragstart", (event) => {
+        recordDrag = handle;
+        event.dataTransfer.setData("text/plain", "record");
+        event.dataTransfer.effectAllowed = "move";
+        handle.closest("[data-record-block]")?.classList.add("dragging");
+      });
+      handle.addEventListener("dragend", () => { recordDrag?.closest("[data-record-block]")?.classList.remove("dragging"); recordDrag = null; });
+    });
+    document.querySelectorAll("[data-record-block]").forEach((record) => {
+      record.addEventListener("dragover", (event) => { if (recordDrag && sameRecordScope(recordDrag, record)) { event.preventDefault(); record.classList.add("drop-target"); } });
+      record.addEventListener("dragleave", () => record.classList.remove("drop-target"));
+      record.addEventListener("drop", (event) => { event.preventDefault(); record.classList.remove("drop-target"); moveRecord(recordDrag, record); });
+    });
+  }
+
   function sameFieldScope(source, target) {
     return source && ["collection", "key", "record", "variant"].every((name) => source.dataset[name] === target.dataset[name]);
   }
@@ -123,6 +143,19 @@
     if (from === to) return;
     const [field] = entries.splice(from, 1);
     entries.splice(to, 0, field);
+    render();
+  }
+
+  function sameRecordScope(source, target) {
+    return source && ["collection", "key", "variant"].every((name) => source.dataset[name] === target.dataset[name]);
+  }
+
+  function moveRecord(source, target) {
+    if (!sameRecordScope(source, target)) return;
+    const records = recordsFor(source), from = Number(source.dataset.record), to = Number(target.dataset.record);
+    if (from === to) return;
+    const [record] = records.splice(from, 1);
+    records.splice(to, 0, record);
     render();
   }
 
