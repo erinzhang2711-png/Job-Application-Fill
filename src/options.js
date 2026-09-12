@@ -18,6 +18,7 @@
   const sectionId = (title) => "section-" + encodeURIComponent(title);
   const escape = (value) => String(value).replace(/[&<>"\x27]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "\x27":"&#39;" })[c]);
   const titleFor = (current, kind) => kind === "work" ? (current.workTitle || labels[locale].work) : (current.internshipTitle || labels[locale].internship);
+  const isLongTextField = (label) => /(描述|职责|评价|问答|陈述|description|responsibilit|statement|answer)/i.test(label);
 
   function orderedSections(current) {
     const known = new Set();
@@ -38,7 +39,8 @@
 
   function fieldRow(collection, key, record, index, entry, variant = "") {
     const data = `data-collection="${collection}" data-key="${escape(key)}" data-record="${record}" data-index="${index}" data-variant="${escape(variant)}"`;
-    return `<div class="row" data-field-row ${data}><button type="button" class="drag-handle" draggable="true" data-drag-handle ${data} title="${labels[locale].drag}">⠿</button><input data-label ${data} value="${escape(entry[0])}" placeholder="Field label"><input data-value ${data} value="${escape(entry[1])}" placeholder="Value"><button class="delete" data-delete ${data} title="${labels[locale].remove}">×</button></div>`;
+    const valueControl = isLongTextField(entry[0]) ? `<textarea data-value ${data} placeholder="Value" rows="3">${escape(entry[1])}</textarea>` : `<input data-value ${data} value="${escape(entry[1])}" placeholder="Value">`;
+    return `<div class="row" data-field-row ${data}><button type="button" class="drag-handle" draggable="true" data-drag-handle ${data} title="${labels[locale].drag}">⠿</button><input data-label ${data} value="${escape(entry[0])}" placeholder="Field label">${valueControl}<button class="delete" data-delete ${data} title="${labels[locale].remove}">×</button></div>`;
   }
 
   function recordBlock(collection, key, records, record, variant = "") {
