@@ -17,7 +17,8 @@
 - 兼容 Chrome 与 Safari，使用同一套扩展源代码。
 - 中英文资料库彼此独立，可分别维护。
 - 支持基础资料、教育经历、工作经历、实习经历、项目经历、校园经历、技能、语言能力、兴趣爱好、个人评价及常用问答。
-- 实习经历可建立多个版本，例如 Finance、Tech 或 AI PM，并按申请岗位选择对应版本。
+- 教育、项目与校园经历可新增多段完整记录，例如本科 / 硕士或多个项目。
+- 工作经历和实习经历都可建立多个版本，例如 Finance、Tech 或 AI PM；每个版本还可新增多段经历。
 - 可新增、改名、删除大板块；顶部板块标签可拖拽排序，底下的内容和右侧填入面板会同步调整。
 - 支持普通输入框、多行文本、常规下拉选项、复选框、单选框与可编辑文本区域。
 - 资料保存在浏览器本地：没有账号、服务器、追踪或自动提交功能。
@@ -157,7 +158,8 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 - One shared codebase for Chrome and Safari.
 - Separate Chinese and English profiles.
 - Personal details, education, work experience, internship variants, projects, campus activities, skills, languages, interests, personal statement, and common answers.
-- Multiple internship versions, such as Finance, Tech, or AI PM.
+- Add complete records for multiple degrees, projects, and campus activities.
+- Multiple work and internship versions, such as Finance, Tech, or AI PM; each version can contain multiple entries.
 - Rename, delete, add, and drag-to-reorder profile sections. The editor and side panel share the same order.
 - Local browser storage only: no account, server, analytics, or automatic submission.
 
