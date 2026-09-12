@@ -1,7 +1,6 @@
 (() => {
   const api = globalThis.browser ?? globalThis.chrome;
   const app = document.querySelector("#app");
-  const sectionNav = document.querySelector("#section-nav");
   const sectionLinks = document.querySelector("#section-links");
   const sectionDialog = document.querySelector("#section-dialog");
   const workKey = APPLICATION_FILL_WORK_KEY;
@@ -10,6 +9,7 @@
   let locale = "zh";
   let fieldDrag;
   let recordDrag;
+  let saveTimer;
 
   const labels = {
     zh: { group: "新增资料", work: "工作经历", internship: "实习经历", addVariant: "新增版本", addRecord: "+ 新增一段经历", record: "第 {n} 段", removeRecord: "删除这一段", addGroup: "添加自定义板块", rename: "改名", deleteGroup: "删除板块", remove: "删除", drag: "拖动排序", customGroup: "板块名称", customField: "资料名称", duplicate: "该名称已存在。", deleteConfirm: "确定删除这个板块及其全部资料吗？", version: "版本名称", createSection: "新增板块", basic: "基础资料", repeatable: "多段经历", variant: "多版本经历", basicHint: "一组普通字段，例如证书或联系方式", repeatableHint: "可新增多段完整记录，例如教育或项目经历", variantHint: "可新建不同版本，每个版本可新增多段经历", create: "创建", cancel: "取消", initialVariant: "可替换不同版本" },
@@ -18,7 +18,6 @@
   const sectionId = (title) => "section-" + encodeURIComponent(title);
   const escape = (value) => String(value).replace(/[&<>"\x27]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "\x27":"&#39;" })[c]);
   const titleFor = (current, kind) => kind === "work" ? (current.workTitle || labels[locale].work) : (current.internshipTitle || labels[locale].internship);
-  const isLongTextField = (label) => /(描述|职责|评价|问答|陈述|description|responsibilit|statement|answer)/i.test(label);
 
   function orderedSections(current) {
     const known = new Set();
@@ -39,7 +38,7 @@
 
   function fieldRow(collection, key, record, index, entry, variant = "") {
     const data = `data-collection="${collection}" data-key="${escape(key)}" data-record="${record}" data-index="${index}" data-variant="${escape(variant)}"`;
-    const valueControl = isLongTextField(entry[0]) ? `<textarea data-value ${data} placeholder="Value" rows="3">${escape(entry[1])}</textarea>` : `<input data-value ${data} value="${escape(entry[1])}" placeholder="Value">`;
+    const valueControl = `<textarea data-value ${data} placeholder="Value" rows="1">${escape(entry[1])}</textarea>`;
     return `<div class="row" data-field-row ${data}><button type="button" class="drag-handle" draggable="true" data-drag-handle ${data} title="${labels[locale].drag}">⠿</button><input data-label ${data} value="${escape(entry[0])}" placeholder="Field label">${valueControl}<button class="delete" data-delete ${data} title="${labels[locale].remove}">×</button></div>`;
   }
 
@@ -88,6 +87,7 @@
     document.querySelector("[data-new-group]").addEventListener("click", showNewGroupDialog);
     bindFieldDrag();
     bindRecordDrag();
+    document.querySelectorAll("textarea[data-value]").forEach(resizeTextarea);
   }
 
   function bindSectionNav() {
@@ -146,6 +146,7 @@
     const [field] = entries.splice(from, 1);
     entries.splice(to, 0, field);
     render();
+    void saveProfile();
   }
 
   function sameRecordScope(source, target) {
@@ -159,6 +160,7 @@
     const [record] = records.splice(from, 1);
     records.splice(to, 0, record);
     render();
+    void saveProfile();
   }
 
   function recordsFor(el) {
@@ -168,11 +170,12 @@
     return variantStore(el.dataset.collection, el.dataset.key, current)[el.dataset.variant];
   }
   function entriesFor(el) { return recordsFor(el)[Number(el.dataset.record)]; }
-  function update(event) { const el = event.target; entriesFor(el)[Number(el.dataset.index)][el.hasAttribute("data-label") ? 0 : 1] = el.value; }
-  function removeField(event) { const el = event.currentTarget; entriesFor(el).splice(Number(el.dataset.index), 1); render(); }
-  function addField(event) { const el = event.currentTarget; entriesFor(el).push(["", ""]); render(); }
-  function addRecord(event) { const el = event.currentTarget; const records = recordsFor(el); records.push(records[0].map(([label]) => [label, ""])); render(); }
-  function deleteRecord(event) { const el = event.currentTarget; const records = recordsFor(el); records.splice(Number(el.dataset.record), 1); render(); }
+  function resizeTextarea(textarea) { textarea.style.height = "auto"; textarea.style.height = `${textarea.scrollHeight}px`; }
+  function update(event) { const el = event.target; entriesFor(el)[Number(el.dataset.index)][el.hasAttribute("data-label") ? 0 : 1] = el.value; if (el instanceof HTMLTextAreaElement) resizeTextarea(el); scheduleSave(); }
+  function removeField(event) { const el = event.currentTarget; entriesFor(el).splice(Number(el.dataset.index), 1); render(); void saveProfile(); }
+  function addField(event) { const el = event.currentTarget; entriesFor(el).push(["", ""]); render(); void saveProfile(); }
+  function addRecord(event) { const el = event.currentTarget; const records = recordsFor(el); records.push(records[0].map(([label]) => [label, ""])); render(); void saveProfile(); }
+  function deleteRecord(event) { const el = event.currentTarget; const records = recordsFor(el); records.splice(Number(el.dataset.record), 1); render(); void saveProfile(); }
   function variantStore(kind, key, current = profile[locale]) {
     if (kind === "work") return current.workVariants;
     if (kind === "internship") return current.internshipVariants;
@@ -184,27 +187,27 @@
     if (variants[newName]) { window.alert(labels[locale].duplicate); event.target.value = oldName; return; }
     const renamed = {}; for (const [name, records] of Object.entries(variants)) renamed[name === oldName ? newName : name] = records;
     if (kind === "work") profile[locale].workVariants = renamed; else if (kind === "internship") profile[locale].internshipVariants = renamed; else profile[locale].variantGroups[event.target.dataset.key] = renamed;
-    render();
+    render(); void saveProfile();
   }
   function newVariant(event) {
     const name = window.prompt(labels[locale].version)?.trim(), kind = event.currentTarget.dataset.kind, key = event.currentTarget.dataset.key, variants = variantStore(kind, key);
     if (!name || variants[name]) return;
     const template = Object.values(variants)[0]?.[0] || [[labels[locale].customField, ""]];
-    variants[name] = [template.map(([label]) => [label, ""])]; render();
+    variants[name] = [template.map(([label]) => [label, ""])]; render(); void saveProfile();
   }
   function renameSection(event) {
     const key = event.currentTarget.dataset.renameSection, kind = event.currentTarget.dataset.kind, current = profile[locale];
-    if (kind === "work" || kind === "internship") { const name = window.prompt(labels[locale].customGroup, titleFor(current, kind))?.trim(); if (name) current[kind === "work" ? "workTitle" : "internshipTitle"] = name; render(); return; }
+    if (kind === "work" || kind === "internship") { const name = window.prompt(labels[locale].customGroup, titleFor(current, kind))?.trim(); if (name) { current[kind === "work" ? "workTitle" : "internshipTitle"] = name; render(); void saveProfile(); } return; }
     const newName = window.prompt(labels[locale].customGroup, key)?.trim();
     if (!newName || newName === key || current.groups[newName] || current.repeatableGroups[newName] || current.variantGroups[newName]) return;
     const store = kind === "repeatable" ? current.repeatableGroups : kind === "variant" ? current.variantGroups : current.groups;
-    store[newName] = store[key]; delete store[key]; current.sectionOrder = current.sectionOrder.map((item) => item === key ? newName : item); render();
+    store[newName] = store[key]; delete store[key]; current.sectionOrder = current.sectionOrder.map((item) => item === key ? newName : item); render(); void saveProfile();
   }
   function deleteSection(event) {
     const key = event.currentTarget.dataset.deleteSection, kind = event.currentTarget.dataset.kind, current = profile[locale];
     if (!window.confirm(labels[locale].deleteConfirm)) return;
     if (kind === "work") current.workVariants = {}; else if (kind === "internship") current.internshipVariants = {}; else delete (kind === "repeatable" ? current.repeatableGroups : kind === "variant" ? current.variantGroups : current.groups)[key];
-    current.sectionOrder = current.sectionOrder.filter((item) => item !== key); render();
+    current.sectionOrder = current.sectionOrder.filter((item) => item !== key); render(); void saveProfile();
   }
   function showNewGroupDialog() {
     const copy = labels[locale];
@@ -218,7 +221,7 @@
       if (type === "repeatable") current.repeatableGroups[name] = [[[copy.customField, ""]]];
       else if (type === "variant") current.variantGroups[name] = { [copy.initialVariant]: [[[copy.customField, ""]]] };
       else current.groups[name] = [[copy.customField, ""]];
-      current.sectionOrder.push(name); sectionDialog.close(); render();
+      current.sectionOrder.push(name); sectionDialog.close(); render(); void saveProfile();
     });
     sectionDialog.showModal();
   }
@@ -226,11 +229,20 @@
     if (!source || source === target) return;
     const order = profile[locale].sectionOrder, from = order.indexOf(source), to = order.indexOf(target);
     if (from < 0 || to < 0) return;
-    order.splice(from, 1); order.splice(to, 0, source); render();
+    order.splice(from, 1); order.splice(to, 0, source); render(); void saveProfile();
   }
 
+  async function saveProfile(showStatus = false) {
+    await api.storage.local.set({ applicationFillProfile: profile });
+    if (!showStatus) return;
+    const button = document.querySelector("#save");
+    button.textContent = "已保存";
+    setTimeout(() => button.textContent = "保存资料", 1200);
+  }
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { void saveProfile(); }, 350); }
+
   document.querySelectorAll("[data-locale]").forEach((button) => button.addEventListener("click", () => { locale = button.dataset.locale; document.querySelectorAll("[data-locale]").forEach((item) => item.classList.toggle("active", item === button)); render(); }));
-  document.querySelector("#save").addEventListener("click", async () => { await api.storage.local.set({ applicationFillProfile: profile }); const button = document.querySelector("#save"); button.textContent = "已保存"; setTimeout(() => button.textContent = "保存资料", 1200); });
-  document.querySelector("#reset").addEventListener("click", () => { if (window.confirm("恢复为空白模板？现有资料将被替换。")) { profile = structuredClone(APPLICATION_FILL_DEFAULT_PROFILE); render(); } });
+  document.querySelector("#save").addEventListener("click", () => { void saveProfile(true); });
+  document.querySelector("#reset").addEventListener("click", () => { if (window.confirm("恢复为空白模板？现有资料将被替换。")) { profile = structuredClone(APPLICATION_FILL_DEFAULT_PROFILE); render(); void saveProfile(); } });
   applicationFillProfile().then((value) => { profile = value; document.querySelector("[data-locale=zh]").classList.add("active"); render(); });
 })();
