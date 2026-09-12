@@ -22,6 +22,7 @@
 - 教育经历支持开始与毕业时间；工作、实习、项目、校园活动经历支持开始与结束时间，项目经历另含职责描述字段；语言能力含语言证书、成绩与获取日期。
 - 可新增、改名、删除大板块；新增时可选择基础资料、多段经历或多版本经历，顶部板块标签可拖拽排序，底下的内容和右侧填入面板会同步调整。
 - 字段左侧有拖拽把手，可按自己的习惯调整字段顺序。
+- 自定义的字段、经历段落与板块顺序会保留，刷新资料页后不会恢复成默认顺序。
 - 所有资料值都支持换行；空白或单行内容保持紧凑，多行内容会自动扩展高度。
 - 编辑、拖拽排序、增删字段或板块会自动保存到浏览器本地，顶部“保存资料”可用于手动确认。
 - 同一板块或同一版本中的多段经历，也可通过“第几段”标题旁的拖拽把手调整顺序。
@@ -169,6 +170,7 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 - Education includes start and graduation dates; work, internship, project, and campus entries include start and end dates. Projects also include responsibilities; language entries include a certificate, score, and date obtained.
 - Rename, delete, add, and drag-to-reorder profile sections. New sections can be basic fields, multiple entries, or multiple versions; the editor and side panel share the same order.
 - Reorder fields with the drag handle next to each field.
+- Custom field, entry, and section order is retained after reopening the profile editor.
 - Every profile value supports line breaks. Empty and single-line values stay compact, while multi-line values expand automatically.
 - Editing, reordering, and adding or removing fields or sections automatically saves to local browser storage; the top save button remains available for manual confirmation.
 - Reorder multiple entries within the same section or version using the drag handle beside each entry heading.
