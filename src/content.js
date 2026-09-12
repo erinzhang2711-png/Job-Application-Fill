@@ -8,6 +8,7 @@
   let root;
   let selectedWorkVariant;
   let selectedInternshipVariant;
+  const selectedVariants = {};
 
   const text = {
     zh: { title: "Job Application Fill", selected: "已选择输入框", waiting: "先点击网页中的输入框", edit: "编辑资料", empty: "未填写", work: "工作经历", internship: "实习经历", entry: "第 {n} 段", close: "关闭" },
@@ -68,6 +69,11 @@
     return records.map((entries, index) => `<div class="record"><h3>${text[locale].entry.replace("{n}", index + 1)}</h3>${cards(entries)}</div>`).join("");
   }
   function titleFor(current, kind) { return kind === "work" ? (current.workTitle || text[locale].work) : (current.internshipTitle || text[locale].internship); }
+  function variantsFor(current, kind, key) {
+    if (kind === "work") return current.workVariants;
+    if (kind === "internship") return current.internshipVariants;
+    return current.variantGroups[key];
+  }
 
   function orderedPanelSections(current) {
     const sections = [];
@@ -75,17 +81,18 @@
       if (key === APPLICATION_FILL_WORK_KEY && Object.keys(current.workVariants || {}).length) sections.push({ key, kind: "work", title: titleFor(current, "work") });
       else if (key === APPLICATION_FILL_INTERNSHIP_KEY && Object.keys(current.internshipVariants || {}).length) sections.push({ key, kind: "internship", title: titleFor(current, "internship") });
       else if (current.repeatableGroups?.[key]) sections.push({ key, kind: "repeatable", title: key, records: current.repeatableGroups[key] });
+      else if (current.variantGroups?.[key] && Object.keys(current.variantGroups[key]).length) sections.push({ key, kind: "variant", title: key });
       else if (current.groups?.[key]) sections.push({ key, kind: "group", title: key, entries: current.groups[key] });
     }
     return sections;
   }
 
   function variantSection(section, current) {
-    const variants = section.kind === "work" ? current.workVariants : current.internshipVariants;
-    const saved = section.kind === "work" ? selectedWorkVariant : selectedInternshipVariant;
+    const variants = variantsFor(current, section.kind, section.key);
+    const saved = section.kind === "work" ? selectedWorkVariant : section.kind === "internship" ? selectedInternshipVariant : selectedVariants[section.key];
     const selected = variants[saved] ? saved : Object.keys(variants)[0];
-    if (section.kind === "work") selectedWorkVariant = selected; else selectedInternshipVariant = selected;
-    return `<section data-panel-section="${section.key}"><h2>${safe(section.title)}</h2><select class="variant" data-variant-kind="${section.kind}">${Object.keys(variants).map((name) => `<option ${name === selected ? "selected" : ""}>${safe(name)}</option>`).join("")}</select>${recordCards(variants[selected])}</section>`;
+    if (section.kind === "work") selectedWorkVariant = selected; else if (section.kind === "internship") selectedInternshipVariant = selected; else selectedVariants[section.key] = selected;
+    return `<section data-panel-section="${section.key}"><h2>${safe(section.title)}</h2><select class="variant" data-variant-kind="${section.kind}" data-variant-key="${safe(section.key)}">${Object.keys(variants).map((name) => `<option ${name === selected ? "selected" : ""}>${safe(name)}</option>`).join("")}</select>${recordCards(variants[selected])}</section>`;
   }
 
   function render() {
@@ -108,7 +115,7 @@
     }));
     root.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => { visible = false; host.remove(); host = null; root = null; }));
     root.querySelector("[data-edit]").addEventListener("click", () => api.runtime.openOptionsPage());
-    root.querySelectorAll("[data-variant-kind]").forEach((select) => select.addEventListener("change", () => { if (select.dataset.variantKind === "work") selectedWorkVariant = select.value; else selectedInternshipVariant = select.value; render(); }));
+    root.querySelectorAll("[data-variant-kind]").forEach((select) => select.addEventListener("change", () => { if (select.dataset.variantKind === "work") selectedWorkVariant = select.value; else if (select.dataset.variantKind === "internship") selectedInternshipVariant = select.value; else selectedVariants[select.dataset.variantKey] = select.value; render(); }));
   }
 
   async function toggle() { ensurePanel(); profile = await applicationFillProfile(); visible = !visible; if (visible) render(); else { host.remove(); host = null; root = null; } }

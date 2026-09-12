@@ -19,6 +19,7 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
       "项目经历": [[["项目名称", ""], ["项目角色", ""], ["项目日期", ""], ["项目描述", ""]]],
       "校园经历": [[["组织/社团", ""], ["职务", ""], ["日期", ""], ["经历描述", ""]]]
     },
+    variantGroups: {},
     workVariants: { "可替换不同版本": [[["公司", ""], ["职位", ""], ["日期", ""], ["工作描述", ""]]] },
     internshipVariants: { "可替换不同版本": [[["公司", ""], ["岗位", ""], ["日期", ""], ["实习描述", ""]]] }
   },
@@ -39,6 +40,7 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
       "Projects": [[["Project name", ""], ["Role", ""], ["Dates", ""], ["Description", ""]]],
       "Campus activities": [[["Organisation", ""], ["Role", ""], ["Dates", ""], ["Description", ""]]]
     },
+    variantGroups: {},
     workVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Dates", ""], ["Description", ""]]] },
     internshipVariants: { "Replaceable version": [[["Company", ""], ["Title", ""], ["Dates", ""], ["Description", ""]]] }
   }
@@ -86,6 +88,7 @@ function applicationFillMergeProfile(storedProfile) {
       if (wasKept) merged[locale].repeatableGroups[title] = applicationFillRecords(savedRecords, records);
       delete merged[locale].groups[title];
     }
+    merged[locale].variantGroups = structuredClone(storedLocale.variantGroups || {});
 
     const legacyWork = merged[locale].groups[defaults.workTitle] || merged[locale].groups[merged[locale].workTitle];
     const workWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_WORK_KEY) || storedLocale.sectionOrder.includes(defaults.workTitle) || storedLocale.workVariants || legacyWork;
@@ -95,12 +98,12 @@ function applicationFillMergeProfile(storedProfile) {
     const internshipWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_INTERNSHIP_KEY) || storedLocale.internshipVariants;
     merged[locale].internshipVariants = internshipWasKept ? applicationFillVariants(storedLocale.internshipVariants, defaults.internshipVariants) : {};
 
-    const available = new Set([...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups)]);
+    const available = new Set([...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups), ...Object.keys(merged[locale].variantGroups)]);
     if (Object.keys(merged[locale].workVariants).length) available.add(APPLICATION_FILL_WORK_KEY);
     if (Object.keys(merged[locale].internshipVariants).length) available.add(APPLICATION_FILL_INTERNSHIP_KEY);
     const requestedOrder = (hasSavedOrder ? storedLocale.sectionOrder : defaults.sectionOrder).map((item) => item === defaults.workTitle ? APPLICATION_FILL_WORK_KEY : item);
     merged[locale].sectionOrder = requestedOrder.filter((item, index) => available.has(item) && requestedOrder.indexOf(item) === index);
-    for (const group of [...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups)]) if (!merged[locale].sectionOrder.includes(group)) merged[locale].sectionOrder.push(group);
+    for (const group of [...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups), ...Object.keys(merged[locale].variantGroups)]) if (!merged[locale].sectionOrder.includes(group)) merged[locale].sectionOrder.push(group);
     for (const key of [APPLICATION_FILL_WORK_KEY, APPLICATION_FILL_INTERNSHIP_KEY]) if (available.has(key) && !merged[locale].sectionOrder.includes(key)) merged[locale].sectionOrder.push(key);
 
     const personalGroup = locale === "zh" ? "基础资料" : "Personal";
