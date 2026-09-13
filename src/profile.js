@@ -68,6 +68,7 @@ function applicationFillVariants(value, fallback) {
 function applicationFillUpgradeRecords(records, template, aliases = {}, preserveOrder = false, addMissingTemplateFields = true) {
   const templateLabels = new Set(template.map(([label]) => label));
   return records.map((record) => {
+    if (preserveOrder && !addMissingTemplateFields) return record.map(([label, value]) => [label, value]);
     const values = new Map(record.map(([label, value]) => [aliases[label] || label, value]));
     if (preserveOrder) {
       const seen = new Set();
