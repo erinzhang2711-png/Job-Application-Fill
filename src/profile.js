@@ -65,7 +65,7 @@ function applicationFillVariants(value, fallback) {
   return Object.fromEntries(Object.entries(source).map(([name, records]) => [name, applicationFillRecords(records, [])]));
 }
 
-function applicationFillUpgradeRecords(records, template, aliases = {}, preserveOrder = false) {
+function applicationFillUpgradeRecords(records, template, aliases = {}, preserveOrder = false, addMissingTemplateFields = true) {
   const templateLabels = new Set(template.map(([label]) => label));
   return records.map((record) => {
     const values = new Map(record.map(([label, value]) => [aliases[label] || label, value]));
@@ -78,9 +78,10 @@ function applicationFillUpgradeRecords(records, template, aliases = {}, preserve
         seen.add(normalized);
         upgraded.push([normalized, values.get(normalized)]);
       }
-      for (const [label, value] of template) if (!seen.has(label)) upgraded.push([label, value]);
+      if (addMissingTemplateFields) for (const [label, value] of template) if (!seen.has(label)) upgraded.push([label, value]);
       return upgraded;
     }
+    if (!addMissingTemplateFields) return record.map(([label]) => [aliases[label] || label, values.get(aliases[label] || label)]);
     const upgraded = template.map(([label, value]) => [label, values.has(label) ? values.get(label) : value]);
     for (const [label, value] of values) if (!templateLabels.has(label)) upgraded.push([label, value]);
     return upgraded;
@@ -101,12 +102,12 @@ function applicationFillSectionAliases(locale) {
   return locale === "zh" ? { "校园经历": "校园活动经历" } : {};
 }
 
-function applicationFillUpgradeLanguageRecords(value, template, locale, preserveOrder = false) {
+function applicationFillUpgradeLanguageRecords(value, template, locale, preserveOrder = false, addMissingTemplateFields = true) {
   if (Array.isArray(value) && Array.isArray(value[0]) && !Array.isArray(value[0][0])) {
     const labels = locale === "zh" ? ["语言类型", "掌握程度"] : ["Language", "Proficiency"];
-    return value.filter(([language]) => language).map(([language, proficiency]) => applicationFillUpgradeRecords([[[labels[0], language], [labels[1], proficiency]]], template, {}, preserveOrder)[0]);
+    return value.filter(([language]) => language).map(([language, proficiency]) => applicationFillUpgradeRecords([[[labels[0], language], [labels[1], proficiency]]], template, {}, preserveOrder, addMissingTemplateFields)[0]);
   }
-  return applicationFillUpgradeRecords(applicationFillRecords(value, template), template, {}, preserveOrder);
+  return applicationFillUpgradeRecords(applicationFillRecords(value, template), template, {}, preserveOrder, addMissingTemplateFields);
 }
 
 function applicationFillMergeProfile(storedProfile) {
@@ -114,6 +115,7 @@ function applicationFillMergeProfile(storedProfile) {
   if (!storedProfile) return merged;
   const storedVersion = Number(storedProfile.profileVersion || 0);
   const preserveRecordOrder = storedVersion >= APPLICATION_FILL_PROFILE_VERSION;
+  const needsTemplateUpgrade = storedVersion < APPLICATION_FILL_PROFILE_VERSION;
 
   for (const locale of ["zh", "en"]) {
     const storedLocale = storedProfile[locale];
@@ -148,7 +150,7 @@ function applicationFillMergeProfile(storedProfile) {
       const savedRecords = savedRepeatableGroups[title] ?? merged[locale].groups[title];
       const introducedInThisVersion = storedVersion < APPLICATION_FILL_PROFILE_VERSION && [locale === "zh" ? "证书" : "Certificates", locale === "zh" ? "奖励信息" : "Awards"].includes(title);
       const wasKept = !hasSavedOrder || savedOrder.includes(title) || savedRecords || introducedInThisVersion;
-      if (wasKept) merged[locale].repeatableGroups[title] = title === (locale === "zh" ? "语言能力" : "Languages") ? applicationFillUpgradeLanguageRecords(savedRecords, records[0], locale, preserveRecordOrder) : applicationFillUpgradeRecords(applicationFillRecords(savedRecords, records), records[0], applicationFillDateAliases(locale, title), preserveRecordOrder);
+      if (wasKept) merged[locale].repeatableGroups[title] = title === (locale === "zh" ? "语言能力" : "Languages") ? applicationFillUpgradeLanguageRecords(savedRecords, records[0], locale, preserveRecordOrder, needsTemplateUpgrade) : applicationFillUpgradeRecords(applicationFillRecords(savedRecords, records), records[0], applicationFillDateAliases(locale, title), preserveRecordOrder, needsTemplateUpgrade);
       delete merged[locale].groups[title];
     }
     merged[locale].variantGroups = structuredClone(storedLocale.variantGroups || {});
@@ -156,12 +158,12 @@ function applicationFillMergeProfile(storedProfile) {
     const legacyWork = merged[locale].groups[defaults.workTitle] || merged[locale].groups[merged[locale].workTitle];
     const workWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_WORK_KEY) || storedLocale.sectionOrder.includes(defaults.workTitle) || storedLocale.workVariants || legacyWork;
     const workTemplate = Object.values(defaults.workVariants)[0][0];
-    merged[locale].workVariants = workWasKept ? Object.fromEntries(Object.entries(applicationFillVariants(storedLocale.workVariants, legacyWork ? { [Object.keys(defaults.workVariants)[0]]: legacyWork } : defaults.workVariants)).map(([name, records]) => [name, applicationFillUpgradeRecords(records, workTemplate, applicationFillDateAliases(locale, defaults.workTitle), preserveRecordOrder)])) : {};
+    merged[locale].workVariants = workWasKept ? Object.fromEntries(Object.entries(applicationFillVariants(storedLocale.workVariants, legacyWork ? { [Object.keys(defaults.workVariants)[0]]: legacyWork } : defaults.workVariants)).map(([name, records]) => [name, applicationFillUpgradeRecords(records, workTemplate, applicationFillDateAliases(locale, defaults.workTitle), preserveRecordOrder, needsTemplateUpgrade)])) : {};
     delete merged[locale].groups[defaults.workTitle];
     delete merged[locale].groups[merged[locale].workTitle];
     const internshipWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_INTERNSHIP_KEY) || storedLocale.internshipVariants;
     const internshipTemplate = Object.values(defaults.internshipVariants)[0][0];
-    merged[locale].internshipVariants = internshipWasKept ? Object.fromEntries(Object.entries(applicationFillVariants(storedLocale.internshipVariants, defaults.internshipVariants)).map(([name, records]) => [name, applicationFillUpgradeRecords(records, internshipTemplate, applicationFillDateAliases(locale, defaults.internshipTitle), preserveRecordOrder)])) : {};
+    merged[locale].internshipVariants = internshipWasKept ? Object.fromEntries(Object.entries(applicationFillVariants(storedLocale.internshipVariants, defaults.internshipVariants)).map(([name, records]) => [name, applicationFillUpgradeRecords(records, internshipTemplate, applicationFillDateAliases(locale, defaults.internshipTitle), preserveRecordOrder, needsTemplateUpgrade)])) : {};
 
     const available = new Set([...Object.keys(merged[locale].groups), ...Object.keys(merged[locale].repeatableGroups), ...Object.keys(merged[locale].variantGroups)]);
     if (Object.keys(merged[locale].workVariants).length) available.add(APPLICATION_FILL_WORK_KEY);

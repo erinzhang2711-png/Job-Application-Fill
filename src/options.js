@@ -11,6 +11,7 @@
   let recordDrag;
   let variantDrag;
   let saveTimer;
+  let saveQueue = Promise.resolve();
 
   const labels = {
     zh: { group: "新增资料", work: "工作经历", internship: "实习经历", addVariant: "新增版本", addRecord: "+ 新增一段经历", record: "第 {n} 段", removeRecord: "删除这一段", addGroup: "添加自定义板块", rename: "改名", deleteGroup: "删除板块", remove: "删除", drag: "拖动排序", customGroup: "板块名称", customField: "资料名称", duplicate: "该名称已存在。", deleteConfirm: "确定删除这个板块及其全部资料吗？", version: "版本名称", createSection: "新增板块", basic: "基础资料", repeatable: "多段经历", variant: "多版本经历", basicHint: "一组普通字段，例如证书或联系方式", repeatableHint: "可新增多段完整记录，例如教育或项目经历", variantHint: "可新建不同版本，每个版本可新增多段经历", create: "创建", cancel: "取消", initialVariant: "可替换不同版本" },
@@ -282,12 +283,18 @@
     order.splice(from, 1); order.splice(to, 0, source); render(); void saveProfile();
   }
 
-  async function saveProfile(showStatus = false) {
-    await api.storage.local.set({ applicationFillProfile: profile });
-    if (!showStatus) return;
-    const button = document.querySelector("#save");
-    button.textContent = "已保存";
-    setTimeout(() => button.textContent = "保存资料", 1200);
+  function saveProfile(showStatus = false) {
+    const snapshot = structuredClone(profile);
+    saveQueue = saveQueue.catch(() => undefined).then(() => api.storage.local.set({ applicationFillProfile: snapshot }));
+    return saveQueue.then(() => {
+      if (!showStatus) return;
+      const button = document.querySelector("#save");
+      button.textContent = "已保存";
+      setTimeout(() => button.textContent = "保存资料", 1200);
+    }).catch((error) => {
+      console.error("Unable to save Job Application Fill profile", error);
+      if (showStatus) window.alert("保存失败，请重试。");
+    });
   }
   function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { void saveProfile(); }, 350); }
 
