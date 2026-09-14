@@ -1,5 +1,5 @@
 (() => {
-  const api = globalThis.browser ?? globalThis.chrome;
+  const api = globalThis.chrome ?? globalThis.browser;
   let activeField = null;
   let visible = false;
   let locale = "zh";
@@ -116,7 +116,7 @@
       panel.scrollTo({ top: Math.max(0, panel.scrollTop + target.getBoundingClientRect().top - panel.getBoundingClientRect().top - panelTop.getBoundingClientRect().height - 8), behavior:"smooth" });
     }));
     root.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => { visible = false; host.remove(); host = null; root = null; }));
-    root.querySelector("[data-edit]").addEventListener("click", () => api.runtime.openOptionsPage());
+    root.querySelector("[data-edit]").addEventListener("click", () => { void api.runtime.sendMessage({ type: "APPLICATION_FILL_OPEN_OPTIONS" }); });
     root.querySelectorAll("[data-variant-kind]").forEach((select) => select.addEventListener("change", () => { if (select.dataset.variantKind === "work") selectedWorkVariant = select.value; else if (select.dataset.variantKind === "internship") selectedInternshipVariant = select.value; else selectedVariants[select.dataset.variantKey] = select.value; render(); }));
   }
 
