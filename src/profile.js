@@ -154,6 +154,10 @@ function applicationFillMergeProfile(storedProfile) {
       if (wasKept) merged[locale].repeatableGroups[title] = title === (locale === "zh" ? "语言能力" : "Languages") ? applicationFillUpgradeLanguageRecords(savedRecords, records[0], locale, preserveRecordOrder, needsTemplateUpgrade) : applicationFillUpgradeRecords(applicationFillRecords(savedRecords, records), records[0], applicationFillDateAliases(locale, title), preserveRecordOrder, needsTemplateUpgrade);
       delete merged[locale].groups[title];
     }
+    for (const [title, records] of Object.entries(savedRepeatableGroups)) {
+      if (defaults.repeatableGroups[title]) continue;
+      merged[locale].repeatableGroups[title] = applicationFillRecords(records, []);
+    }
     merged[locale].variantGroups = structuredClone(storedLocale.variantGroups || {});
 
     const legacyWork = merged[locale].groups[defaults.workTitle] || merged[locale].groups[merged[locale].workTitle];
