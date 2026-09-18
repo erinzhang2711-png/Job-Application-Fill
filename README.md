@@ -14,7 +14,7 @@
 
 ### 主要功能
 
-- 兼容 Chrome 与 Safari，使用同一套扩展源代码。
+- 兼容 Chrome、Microsoft Edge 与 Safari，使用同一套扩展源代码。
 - 中英文资料库彼此独立，可分别维护。
 - 支持基础资料、教育经历、工作经历、实习经历、项目经历、校园活动经历、技能、语言能力、证书、奖励信息、兴趣爱好、个人评价及常用问答。
 - 教育、项目、校园活动、语言能力、证书与奖励信息可新增多段完整记录，例如本科 / 硕士、多个项目或多张证书。
@@ -39,24 +39,26 @@
 5. 首次使用或需要改资料时，点击面板底部的“编辑资料”。编辑完成后点击“保存资料”。
 6. 提交申请前，请逐项核对页面上的内容；扩展不会替你提交申请。
 
-## 在 Chrome 安装
+## 在 Chrome 或 Microsoft Edge 安装
+
+Edge 基于 Chromium，安装方式与 Chrome 相同；仅地址栏入口不同：Chrome 使用 `chrome://extensions`，Edge 使用 `edge://extensions`。
 
 ### 第一次安装
 
 1. 在本仓库页面点击 **Code → Download ZIP**，下载后双击解压；也可以使用 Git 克隆仓库。
-2. 不要删除或移动解压后的项目文件夹。Chrome 需要一直从这个文件夹读取扩展文件。
-3. 在 Chrome 地址栏输入 `chrome://extensions` 并打开。
+2. 不要删除或移动解压后的项目文件夹。Chrome 或 Edge 需要一直从这个文件夹读取扩展文件。
+3. 在 Chrome 地址栏输入 `chrome://extensions`，或在 Edge 地址栏输入 `edge://extensions`。
 4. 打开右上角的“开发者模式”。
 5. 点击“加载已解压的扩展程序”。
 6. 选择刚才解压得到的 **Job Application Fill** 文件夹——请选择包含 `manifest.json` 的文件夹，不是它的上一层或 `src` 文件夹。
-7. 扩展卡片出现后，建议点击 Chrome 工具栏右上角的拼图图标，把 **Job Application Fill** 固定到工具栏。
+7. 扩展卡片出现后，建议点击浏览器工具栏右上角的扩展菜单图标，把 **Job Application Fill** 固定到工具栏。
 8. 右键点击工具栏中的 **Job Application Fill** 图标，选择“选项”，即可进入资料编辑页，自定义字段、板块与实习经历版本。
 9. 进入网申页面后，点击固定在右上角工具栏的 **Job Application Fill** 图标，即可打开资料面板并开始使用。
 
-### 更新 Chrome 版本
+### 更新 Chrome / Edge 版本
 
 1. 从 GitHub 下载最新 ZIP 并解压，或在已克隆的仓库文件夹中执行 `git pull`。
-2. 如果换了文件夹，请在 `chrome://extensions` 移除旧的“已解压”扩展，再选择新的项目文件夹重新加载。
+2. 如果换了文件夹，请在 `chrome://extensions` 或 `edge://extensions` 移除旧的“已解压”扩展，再选择新的项目文件夹重新加载。
 3. 如果仍使用同一个文件夹，只需在扩展卡片上点击“重新加载”。
 4. 资料通常保留在浏览器扩展的本地存储中；移除扩展或清除浏览器数据前，请确认自己不需要保留其中的资料。
 
@@ -163,7 +165,7 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 
 ### Key features
 
-- One shared codebase for Chrome and Safari.
+- One shared codebase for Chrome, Microsoft Edge, and Safari.
 - Separate Chinese and English profiles.
 - Personal details, education, work experience, internship variants, projects, campus activities, skills, languages, certificates, awards, interests, personal statement, and common answers.
 - Add complete records for multiple degrees, projects, campus activities, languages, certificates, and awards.
@@ -187,18 +189,20 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 5. Select “Edit profile” in the panel whenever you need to update your information, and save your changes.
 6. Review every field before submitting the application.
 
-## Install on Chrome
+## Install on Chrome or Microsoft Edge
+
+Microsoft Edge is Chromium-based, so the installation flow is the same. Use `chrome://extensions` in Chrome or `edge://extensions` in Edge.
 
 1. Choose **Code → Download ZIP** on this repository page and unzip it, or clone the repository with Git.
 2. Keep the extracted project folder in place.
-3. Open `chrome://extensions` in Chrome and enable **Developer mode**.
+3. Open `chrome://extensions` in Chrome, or `edge://extensions` in Microsoft Edge, and enable **Developer mode**.
 4. Click **Load unpacked**.
 5. Select the **Job Application Fill** folder that contains `manifest.json` (not its parent directory and not the `src` folder).
-6. Optionally pin Job Application Fill from Chrome’s Extensions menu to make it easier to open.
+6. Optionally pin Job Application Fill from the browser’s Extensions menu to make it easier to open.
 7. Right-click the Job Application Fill toolbar icon and choose **Options** to edit your profile, fields, sections, and internship variants.
 8. On a job application page, click the pinned Job Application Fill toolbar icon to open the side panel and start filling fields.
 
-To update, replace the files in the same folder and press **Reload** on its card in `chrome://extensions`. If you load a different folder instead, remove the old unpacked extension and load the new folder.
+To update, replace the files in the same folder and press **Reload** on its card in `chrome://extensions` or `edge://extensions`. If you load a different folder instead, remove the old unpacked extension and load the new folder.
 
 ## Install on Safari (macOS + Xcode)
 
