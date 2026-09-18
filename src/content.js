@@ -30,7 +30,27 @@
 
   document.addEventListener("focusin", (event) => { if (isFillable(event.target)) { activeField = event.target; render(); } }, true);
 
+  function dispatchFieldEvent(element, type, value) {
+    const eventOptions = { bubbles: true, composed: true };
+    if (type === "beforeinput" || type === "input") {
+      try {
+        element.dispatchEvent(new InputEvent(type, { ...eventOptions, data: String(value), inputType: "insertText" }));
+        return;
+      } catch {
+        // Older browser engines may not expose the InputEvent constructor.
+      }
+    }
+    element.dispatchEvent(new Event(type, eventOptions));
+  }
+
+  function focusField(element) {
+    try { element.focus({ preventScroll: true }); }
+    catch { element.focus(); }
+  }
+
   function nativeSet(element, value) {
+    focusField(element);
+    dispatchFieldEvent(element, "beforeinput", value);
     if (element instanceof HTMLSelectElement) {
       const wanted = String(value).trim().toLowerCase();
       const option = [...element.options].find((item) => { const candidate = `${item.text} ${item.value}`.trim().toLowerCase(); return candidate === wanted || candidate.includes(wanted) || wanted.includes(candidate); });
@@ -44,10 +64,16 @@
       const prototype = element instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype;
       Object.getOwnPropertyDescriptor(prototype, "value")?.set?.call(element, value);
     } else if (element.isContentEditable || element.getAttribute("role") === "textbox") {
-      element.textContent = value;
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      if (!document.execCommand("insertText", false, String(value))) element.textContent = value;
     } else return false;
-    element.dispatchEvent(new Event("input", { bubbles: true }));
-    element.dispatchEvent(new Event("change", { bubbles: true }));
+    dispatchFieldEvent(element, "input", value);
+    dispatchFieldEvent(element, "change", value);
+    requestAnimationFrame(() => element.blur());
     return true;
   }
 
