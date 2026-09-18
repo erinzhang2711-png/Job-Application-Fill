@@ -1,4 +1,4 @@
-const applicationFillApi = globalThis.chrome ?? globalThis.browser;
+const applicationFillApi = globalThis.browser ?? globalThis.chrome;
 
 async function applicationFillOpenOptionsPage() {
   if (typeof applicationFillApi.runtime.openOptionsPage === "function") {

@@ -1,5 +1,5 @@
 (() => {
-  const api = globalThis.chrome ?? globalThis.browser;
+  const api = globalThis.browser ?? globalThis.chrome;
   let activeField = null;
   let visible = false;
   let locale = "zh";

@@ -52,7 +52,7 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
   }
 };
 
-const applicationFillApi = globalThis.chrome ?? globalThis.browser;
+const applicationFillApi = globalThis.browser ?? globalThis.chrome;
 
 function applicationFillRecords(value, fallback) {
   if (!Array.isArray(value)) return structuredClone(fallback);

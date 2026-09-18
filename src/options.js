@@ -1,5 +1,5 @@
 (() => {
-  const api = globalThis.chrome ?? globalThis.browser;
+  const api = globalThis.browser ?? globalThis.chrome;
   const app = document.querySelector("#app");
   const sectionLinks = document.querySelector("#section-links");
   const sectionDialog = document.querySelector("#section-dialog");
