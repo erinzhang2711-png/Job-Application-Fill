@@ -20,20 +20,21 @@
 - 教育、项目、校园活动、语言能力、证书与奖励信息可新增多段完整记录，例如本科 / 硕士、多个项目或多张证书。
 - 工作经历和实习经历都可建立多个版本，例如 Finance、Tech 或 AI PM；每个版本还可新增多段经历。
 - 教育经历支持开始与毕业时间；工作、实习、项目、校园活动经历支持开始与结束时间，项目经历另含职责描述字段；语言能力含语言证书、成绩与获取日期。
-- 可新增、改名、删除大板块；新增时可选择基础资料、多段经历或多版本经历，顶部板块标签可拖拽排序，底下的内容和右侧填入面板会同步调整。
+- 可新增、改名、删除大板块；新增时可选择基础资料、多段经历或多版本经历，板块标签可拖拽排序，资料页与填入面板会同步调整。
 - 字段左侧有拖拽把手，可按自己的习惯调整字段顺序。
 - 自定义的字段、经历段落与板块顺序会保留，刷新资料页后不会恢复成默认顺序。
 - 所有资料值都支持换行；空白或单行内容保持紧凑，多行内容最多扩展到固定高度，超出部分可在框内滚动查看。
 - 编辑、拖拽排序、增删字段或板块会自动保存到浏览器本地，顶部“保存资料”可用于手动确认。
 - 同一板块或同一版本中的多段经历，也可通过“第几段”标题旁的拖拽把手调整顺序。
 - 工作、实习及自定义多版本经历中的不同版本，也可通过版本名称左侧的拖拽把手调整顺序。
+- 填入面板的板块标签固定在左侧，内容滚动时仍可直接切换；按住面板顶部的非按钮区域即可拖动面板，避免遮挡网页字段。
 - 支持普通输入框、多行文本、常规下拉选项、复选框、单选框与可编辑文本区域。
 - 资料保存在浏览器本地：没有账号、服务器、追踪或自动提交功能。
 
 ### 日常使用
 
 1. 打开求职官网的申请页面。
-2. 点击浏览器工具栏中的 **Job Application Fill** 图标，打开右侧资料面板。
+2. 点击浏览器工具栏中的 **Job Application Fill** 图标，打开资料面板。按住面板顶部的空白区域可拖动它到合适位置。
 3. 先点击网页中需要填写的字段，例如“姓名”或“公司名称”。
 4. 在右侧面板中切换中文或 English，并点击想填入的资料卡片。
 5. 首次使用或需要改资料时，点击面板底部的“编辑资料”。编辑完成后点击“保存资料”。
@@ -171,19 +172,20 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 - Add complete records for multiple degrees, projects, campus activities, languages, certificates, and awards.
 - Multiple work and internship versions, such as Finance, Tech, or AI PM; each version can contain multiple entries.
 - Education includes start and graduation dates; work, internship, project, and campus entries include start and end dates. Projects also include responsibilities; language entries include a certificate, score, and date obtained.
-- Rename, delete, add, and drag-to-reorder profile sections. New sections can be basic fields, multiple entries, or multiple versions; the editor and side panel share the same order.
+- Rename, delete, add, and drag-to-reorder profile sections. New sections can be basic fields, multiple entries, or multiple versions; the editor and fill panel share the same order.
 - Reorder fields with the drag handle next to each field.
 - Custom field, entry, and section order is retained after reopening the profile editor.
 - Every profile value supports line breaks. Empty and single-line values stay compact, while multi-line values grow to a fixed maximum height and then scroll within the field.
 - Editing, reordering, and adding or removing fields or sections automatically saves to local browser storage; the top save button remains available for manual confirmation.
 - Reorder multiple entries within the same section or version using the drag handle beside each entry heading.
 - Reorder work, internship, and custom multi-version profiles using the drag handle beside each version name.
+- Section navigation stays fixed on the left side of the fill panel while its content scrolls. Drag the panel from any non-button area in its top bar to keep it from covering webpage fields.
 - Local browser storage only: no account, server, analytics, or automatic submission.
 
 ### How to use it
 
 1. Open a job application form.
-2. Click the **Job Application Fill** icon in the browser toolbar.
+2. Click the **Job Application Fill** icon in the browser toolbar. Drag the panel from an empty area in its top bar if it covers the form.
 3. Click the target field on the webpage.
 4. Choose Chinese or English in the side panel, then click the value you want to insert.
 5. Select “Edit profile” in the panel whenever you need to update your information, and save your changes.

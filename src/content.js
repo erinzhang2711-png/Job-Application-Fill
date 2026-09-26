@@ -6,13 +6,14 @@
   let profile;
   let host;
   let root;
+  let panelPosition = null;
   let selectedWorkVariant;
   let selectedInternshipVariant;
   const selectedVariants = {};
 
   const text = {
-    zh: { title: "Job Application Fill", selected: "已选择输入框", waiting: "先点击网页中的输入框", edit: "编辑资料", empty: "未填写", work: "工作经历", internship: "实习经历", entry: "第 {n} 段", close: "关闭" },
-    en: { title: "Job Application Fill", selected: "Field selected", waiting: "Click a field on this page first", edit: "Edit profile", empty: "Not set", work: "Work experience", internship: "Internship experience", entry: "Entry {n}", close: "Close" }
+    zh: { title: "Job Application Fill", selected: "已选择输入框", waiting: "先点击网页中的输入框", edit: "编辑资料", empty: "未填写", work: "工作经历", internship: "实习经历", entry: "第 {n} 段", close: "关闭", drag: "拖动面板" },
+    en: { title: "Job Application Fill", selected: "Field selected", waiting: "Click a field on this page first", edit: "Edit profile", empty: "Not set", work: "Work experience", internship: "Internship experience", entry: "Entry {n}", close: "Close", drag: "Drag panel" }
   };
 
   function ensurePanel() {
@@ -123,17 +124,58 @@
     return `<section data-panel-section="${section.key}"><h2>${safe(section.title)}</h2><select class="variant" data-variant-kind="${section.kind}" data-variant-key="${safe(section.key)}">${Object.keys(variants).map((name) => `<option ${name === selected ? "selected" : ""}>${safe(name)}</option>`).join("")}</select>${recordCards(variants[selected])}</section>`;
   }
 
+  function panelPositionStyle() {
+    if (!panelPosition) return "";
+    return `left:${panelPosition.left}px;top:${panelPosition.top}px;right:auto;`;
+  }
+
+  function attachPanelDragging(panel) {
+    const surface = root.querySelector("[data-drag-surface]");
+    if (!surface) return;
+    let dragState = null;
+    const finishDrag = (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      dragState = null;
+      surface.releasePointerCapture?.(event.pointerId);
+      surface.classList.remove("dragging");
+    };
+    surface.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      if (event.target.closest("button")) return;
+      const rect = panel.getBoundingClientRect();
+      dragState = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, left: rect.left, top: rect.top };
+      surface.setPointerCapture?.(event.pointerId);
+      surface.classList.add("dragging");
+      event.preventDefault();
+    });
+    surface.addEventListener("pointermove", (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+      const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+      panelPosition = {
+        left: Math.round(Math.min(maxLeft, Math.max(0, dragState.left + event.clientX - dragState.startX))),
+        top: Math.round(Math.min(maxTop, Math.max(0, dragState.top + event.clientY - dragState.startY)))
+      };
+      panel.style.left = `${panelPosition.left}px`;
+      panel.style.top = `${panelPosition.top}px`;
+      panel.style.right = "auto";
+    });
+    surface.addEventListener("pointerup", finishDrag);
+    surface.addEventListener("pointercancel", finishDrag);
+  }
+
   function render() {
     if (!visible || !root || !profile) return;
     const scrollTop = root.querySelector(".panel")?.scrollTop || 0;
-    const quickNavScrollLeft = root.querySelector(".quick-nav")?.scrollLeft || 0;
+    const quickNavScrollTop = root.querySelector(".quick-nav")?.scrollTop || 0;
     const current = profile[locale];
     const sections = orderedPanelSections(current);
     root.innerHTML = `<style>
-      :host { all: initial; } * { box-sizing:border-box; } .panel { position:fixed; z-index:2147483647; top:72px; right:18px; width:340px; max-height:calc(100vh - 92px); overflow:auto; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#172033; background:#fff; border:1px solid #dbe3f0; border-radius:16px; box-shadow:0 18px 50px rgba(20,38,70,.2); padding:16px; } .panel-top { position:sticky; top:-16px; z-index:1; margin:0 -16px 8px; padding:16px 16px 7px; background:#fff; box-shadow:0 8px 12px -14px rgba(20,38,70,.55); } header { display:flex; align-items:center; gap:8px; margin-bottom:12px; } h1 { margin:0 auto 0 0; font-size:16px; } button,select { font:inherit; } .icon,.tab { border:0; background:#eef3ff; color:#284d9b; border-radius:8px; padding:7px 9px; cursor:pointer; } .tab.active { background:#315de9; color:#fff; } .status { padding:9px 10px; border-radius:8px; font-size:12px; margin-bottom:10px; background:${activeField ? "#eaf9f0" : "#fff5e5"}; color:#47605a; } .quick-nav { display:flex; gap:6px; overflow-x:auto; padding:2px 0 6px; scrollbar-width:thin; } .quick-nav button { flex:0 0 auto; border:1px solid #dbe3f0; border-radius:999px; padding:5px 8px; background:#fff; color:#315de9; font-size:11px; cursor:pointer; white-space:nowrap; } .quick-nav button:hover { background:#eef3ff; border-color:#315de9; } section { margin:12px 0; } h2 { font-size:13px; margin:0 0 7px; color:#536278; } h3 { font-size:11px; margin:10px 0 5px; color:#7a879a; } .record + .record { border-top:1px solid #edf0f5; margin-top:12px; padding-top:2px; } .entry { display:block; width:100%; text-align:left; padding:9px 10px; margin:5px 0; border:1px solid #e5e9f1; border-radius:8px; background:#fff; cursor:pointer; } .entry:hover:not(:disabled) { border-color:#315de9; background:#f5f8ff; } .entry:disabled { cursor:not-allowed; opacity:.5; } .entry span,.entry strong { display:block; } .entry span { font-size:12px; color:#637089; margin-bottom:2px; } .entry strong { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .variant { width:100%; padding:8px; border:1px solid #dbe3f0; border-radius:8px; background:#fff; } .footer { display:flex; justify-content:space-between; gap:8px; padding-top:8px; } .footer button { border:0; background:none; color:#315de9; padding:4px 0; cursor:pointer; font-size:12px; }
-    </style><aside class="panel"><div class="panel-top"><header><h1>${text[locale].title}</h1><button class="tab ${locale === "zh" ? "active" : ""}" data-locale="zh">中文</button><button class="tab ${locale === "en" ? "active" : ""}" data-locale="en">EN</button><button class="icon" data-close title="${text[locale].close}">×</button></header><div class="status">${activeField ? text[locale].selected : text[locale].waiting}</div><nav class="quick-nav">${sections.map((section) => `<button data-jump-section="${safe(section.key)}">${safe(section.title)}</button>`).join("")}</nav></div>${sections.map((section) => section.kind === "group" ? `<section data-panel-section="${safe(section.key)}"><h2>${safe(section.title)}</h2>${cards(section.entries)}</section>` : section.kind === "repeatable" ? `<section data-panel-section="${safe(section.key)}"><h2>${safe(section.title)}</h2>${recordCards(section.records)}</section>` : variantSection(section, current)).join("")}<div class="footer"><button data-edit>${text[locale].edit}</button><button data-close>${text[locale].close}</button></div></aside>`;
+      :host { all:initial; } * { box-sizing:border-box; } .panel { position:fixed; z-index:2147483647; top:72px; right:18px; width:340px; max-height:calc(100vh - 92px); overflow:auto; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#172033; background:#fff; border:1px solid #dbe3f0; border-radius:16px; box-shadow:0 18px 50px rgba(20,38,70,.2); padding:16px; } .panel-top { position:sticky; top:-16px; z-index:2; margin:0 -16px 8px; padding:16px 16px 7px; background:#fff; box-shadow:0 8px 12px -14px rgba(20,38,70,.55); cursor:grab; touch-action:none; user-select:none; } .panel-top.dragging { cursor:grabbing; } header { display:flex; align-items:center; gap:8px; margin-bottom:12px; } h1 { margin:0 auto 0 0; font-size:16px; } button,select { font:inherit; } .icon,.tab { border:0; background:#eef3ff; color:#284d9b; border-radius:8px; padding:7px 9px; cursor:pointer; } .tab { width:36px; height:34px; padding:0; display:grid; place-items:center; white-space:nowrap; } .tab.active { background:#315de9; color:#fff; } .status { padding:9px 10px; border-radius:8px; font-size:12px; margin-bottom:2px; background:${activeField ? "#eaf9f0" : "#fff5e5"}; color:#47605a; } .panel-main { display:flex; align-items:flex-start; gap:10px; min-width:0; } .quick-nav { position:sticky; top:96px; z-index:1; flex:0 0 64px; display:flex; flex-direction:column; gap:6px; max-height:calc(100vh - 202px); overflow-x:hidden; overflow-y:auto; padding:3px 1px 8px; scrollbar-width:thin; } .quick-nav button { width:100%; border:1px solid #dbe3f0; border-radius:9px; padding:6px 3px; background:#fff; color:#315de9; font-size:11px; line-height:1.25; cursor:pointer; overflow-wrap:anywhere; } .quick-nav button:hover { background:#eef3ff; border-color:#315de9; } .panel-content { flex:1 1 0; min-width:0; } section { margin:12px 0; } h2 { font-size:13px; margin:0 0 7px; color:#536278; } h3 { font-size:11px; margin:10px 0 5px; color:#7a879a; } .record + .record { border-top:1px solid #edf0f5; margin-top:12px; padding-top:2px; } .entry { display:block; width:100%; text-align:left; padding:9px 10px; margin:5px 0; border:1px solid #e5e9f1; border-radius:8px; background:#fff; cursor:pointer; } .entry:hover:not(:disabled) { border-color:#315de9; background:#f5f8ff; } .entry:disabled { cursor:not-allowed; opacity:.5; } .entry span,.entry strong { display:block; } .entry span { font-size:12px; color:#637089; margin-bottom:2px; } .entry strong { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .variant { width:100%; padding:8px; border:1px solid #dbe3f0; border-radius:8px; background:#fff; } .footer { display:flex; justify-content:space-between; gap:8px; padding:8px 0 2px; } .footer button { border:0; background:none; color:#315de9; padding:4px 0; cursor:pointer; font-size:12px; }
+    </style><aside class="panel" style="${panelPositionStyle()}"><div class="panel-top" data-drag-surface title="${text[locale].drag}"><header><h1>${text[locale].title}</h1><button class="tab ${locale === "zh" ? "active" : ""}" data-locale="zh">中文</button><button class="tab ${locale === "en" ? "active" : ""}" data-locale="en">EN</button><button class="icon" data-close title="${text[locale].close}">×</button></header><div class="status">${activeField ? text[locale].selected : text[locale].waiting}</div></div><div class="panel-main"><nav class="quick-nav">${sections.map((section) => `<button data-jump-section="${safe(section.key)}">${safe(section.title)}</button>`).join("")}</nav><main class="panel-content">${sections.map((section) => section.kind === "group" ? `<section data-panel-section="${safe(section.key)}"><h2>${safe(section.title)}</h2>${cards(section.entries)}</section>` : section.kind === "repeatable" ? `<section data-panel-section="${safe(section.key)}"><h2>${safe(section.title)}</h2>${recordCards(section.records)}</section>` : variantSection(section, current)).join("")}<div class="footer"><button data-edit>${text[locale].edit}</button><button data-close>${text[locale].close}</button></div></main></div></aside>`;
     root.querySelector(".panel").scrollTop = scrollTop;
-    root.querySelector(".quick-nav").scrollLeft = quickNavScrollLeft;
+    root.querySelector(".quick-nav").scrollTop = quickNavScrollTop;
+    attachPanelDragging(root.querySelector(".panel"));
     root.querySelectorAll(".entry").forEach((button) => button.addEventListener("click", () => fill(button.dataset.value)));
     root.querySelectorAll("[data-locale]").forEach((button) => button.addEventListener("click", () => { locale = button.dataset.locale; render(); }));
     root.querySelectorAll("[data-jump-section]").forEach((button) => button.addEventListener("click", () => {
