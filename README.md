@@ -24,7 +24,7 @@
 - 字段左侧有拖拽把手，可按自己的习惯调整字段顺序。
 - 自定义的字段、经历段落与板块顺序会保留，刷新资料页后不会恢复成默认顺序。
 - 所有资料值都支持换行；空白或单行内容保持紧凑，多行内容最多扩展到固定高度，超出部分可在框内滚动查看。
-- 编辑、拖拽排序、增删字段或板块会自动保存到浏览器本地，顶部“保存资料”可用于手动确认。
+- 编辑、拖拽排序、增删字段或板块会自动保存到浏览器本地，顶部“保存资料”可用于手动确认。保存后会再读取核验；如失败会显示原因，方便排查浏览器或扩展本地存储问题。
 - 同一板块或同一版本中的多段经历，也可通过“第几段”标题旁的拖拽把手调整顺序。
 - 工作、实习及自定义多版本经历中的不同版本，也可通过版本名称左侧的拖拽把手调整顺序。
 - 填入面板的板块标签固定在左侧，内容滚动时仍可直接切换；按住面板顶部的非按钮区域即可拖动面板，避免遮挡网页字段。
@@ -176,7 +176,7 @@ It does **not** auto-apply or auto-submit. Click a field on the application page
 - Reorder fields with the drag handle next to each field.
 - Custom field, entry, and section order is retained after reopening the profile editor.
 - Every profile value supports line breaks. Empty and single-line values stay compact, while multi-line values grow to a fixed maximum height and then scroll within the field.
-- Editing, reordering, and adding or removing fields or sections automatically saves to local browser storage; the top save button remains available for manual confirmation.
+- Editing, reordering, and adding or removing fields or sections automatically saves to local browser storage; the top save button remains available for manual confirmation. Each save is read back for verification, and a failed save shows its reason.
 - Reorder multiple entries within the same section or version using the drag handle beside each entry heading.
 - Reorder work, internship, and custom multi-version profiles using the drag handle beside each version name.
 - Section navigation stays fixed on the left side of the fill panel while its content scrolls. Drag the panel from any non-button area in its top bar to keep it from covering webpage fields.

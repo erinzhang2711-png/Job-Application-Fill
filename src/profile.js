@@ -54,10 +54,50 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
 
 const applicationFillApi = globalThis.browser ?? globalThis.chrome;
 
+function applicationFillClone(value) {
+  if (typeof globalThis.structuredClone === "function") return globalThis.structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
+}
+
+function applicationFillStorageCall(method, argument) {
+  return new Promise((resolve, reject) => {
+    const storage = applicationFillApi?.storage?.local;
+    if (!storage || typeof storage[method] !== "function") {
+      reject(new Error("浏览器未提供本地资料存储功能。"));
+      return;
+    }
+    let settled = false;
+    const settle = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      callback(value);
+    };
+    const callback = (result) => {
+      const lastError = applicationFillApi.runtime?.lastError;
+      if (lastError) settle(reject, new Error(lastError.message || String(lastError)));
+      else settle(resolve, result);
+    };
+    try {
+      const result = storage[method](argument, callback);
+      if (result && typeof result.then === "function") result.then((value) => settle(resolve, value), (error) => settle(reject, error));
+    } catch (error) {
+      settle(reject, error);
+    }
+  });
+}
+
+function applicationFillStorageGet(key) {
+  return applicationFillStorageCall("get", key);
+}
+
+function applicationFillStorageSet(value) {
+  return applicationFillStorageCall("set", value);
+}
+
 function applicationFillRecords(value, fallback) {
-  if (!Array.isArray(value)) return structuredClone(fallback);
-  if (Array.isArray(value[0]?.[0])) return structuredClone(value);
-  return [structuredClone(value)];
+  if (!Array.isArray(value)) return applicationFillClone(fallback);
+  if (Array.isArray(value[0]?.[0])) return applicationFillClone(value);
+  return [applicationFillClone(value)];
 }
 
 function applicationFillVariants(value, fallback) {
@@ -112,7 +152,7 @@ function applicationFillUpgradeLanguageRecords(value, template, locale, preserve
 }
 
 function applicationFillMergeProfile(storedProfile) {
-  const merged = structuredClone(APPLICATION_FILL_DEFAULT_PROFILE);
+  const merged = applicationFillClone(APPLICATION_FILL_DEFAULT_PROFILE);
   if (!storedProfile) return merged;
   const storedVersion = Number(storedProfile.profileVersion || 0);
   const preserveRecordOrder = storedVersion >= APPLICATION_FILL_PROFILE_VERSION;
@@ -124,8 +164,8 @@ function applicationFillMergeProfile(storedProfile) {
     const defaults = APPLICATION_FILL_DEFAULT_PROFILE[locale];
     const hasSavedOrder = Array.isArray(storedLocale.sectionOrder);
     const aliases = applicationFillSectionAliases(locale);
-    const savedGroups = structuredClone(storedLocale.groups || {});
-    const savedRepeatableGroups = structuredClone(storedLocale.repeatableGroups || {});
+    const savedGroups = applicationFillClone(storedLocale.groups || {});
+    const savedRepeatableGroups = applicationFillClone(storedLocale.repeatableGroups || {});
     for (const [from, to] of Object.entries(aliases)) {
       if (!savedGroups[to] && savedGroups[from]) savedGroups[to] = savedGroups[from];
       if (!savedRepeatableGroups[to] && savedRepeatableGroups[from]) savedRepeatableGroups[to] = savedRepeatableGroups[from];
@@ -140,9 +180,9 @@ function applicationFillMergeProfile(storedProfile) {
     if (!hasSavedOrder) {
       for (const [group, fields] of Object.entries(defaults.groups)) {
         const existing = merged[locale].groups[group];
-        if (!existing) { merged[locale].groups[group] = structuredClone(fields); continue; }
+        if (!existing) { merged[locale].groups[group] = applicationFillClone(fields); continue; }
         const labels = new Set(existing.map(([label]) => label));
-        for (const field of fields) if (!labels.has(field[0])) existing.push(structuredClone(field));
+        for (const field of fields) if (!labels.has(field[0])) existing.push(applicationFillClone(field));
       }
     }
 
@@ -158,7 +198,7 @@ function applicationFillMergeProfile(storedProfile) {
       if (defaults.repeatableGroups[title]) continue;
       merged[locale].repeatableGroups[title] = applicationFillRecords(records, []);
     }
-    merged[locale].variantGroups = structuredClone(storedLocale.variantGroups || {});
+    merged[locale].variantGroups = applicationFillClone(storedLocale.variantGroups || {});
 
     const legacyWork = merged[locale].groups[defaults.workTitle] || merged[locale].groups[merged[locale].workTitle];
     const workWasKept = !hasSavedOrder || storedLocale.sectionOrder.includes(APPLICATION_FILL_WORK_KEY) || storedLocale.sectionOrder.includes(defaults.workTitle) || storedLocale.workVariants || legacyWork;
@@ -200,6 +240,6 @@ function applicationFillMergeProfile(storedProfile) {
 }
 
 async function applicationFillProfile() {
-  const stored = await applicationFillApi.storage.local.get("applicationFillProfile");
+  const stored = await applicationFillStorageGet("applicationFillProfile");
   return applicationFillMergeProfile(stored.applicationFillProfile);
 }

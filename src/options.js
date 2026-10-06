@@ -1,5 +1,4 @@
 (() => {
-  const api = globalThis.browser ?? globalThis.chrome;
   const app = document.querySelector("#app");
   const sectionLinks = document.querySelector("#section-links");
   const sectionDialog = document.querySelector("#section-dialog");
@@ -11,6 +10,7 @@
   let recordDrag;
   let variantDrag;
   let saveTimer;
+  let saveStatusTimer;
   let saveQueue = Promise.resolve();
 
   const labels = {
@@ -284,22 +284,50 @@
   }
 
   function saveProfile(showStatus = false) {
-    const snapshot = structuredClone(profile);
-    saveQueue = saveQueue.catch(() => undefined).then(() => api.storage.local.set({ applicationFillProfile: snapshot }));
-    return saveQueue.then(() => {
-      if (!showStatus) return;
-      const button = document.querySelector("#save");
-      button.textContent = "已保存";
-      setTimeout(() => button.textContent = "保存资料", 1200);
-    }).catch((error) => {
-      console.error("Unable to save Job Application Fill profile", error);
-      if (showStatus) window.alert("保存失败，请重试。");
+    let snapshot;
+    try {
+      snapshot = applicationFillClone(profile);
+    } catch (error) {
+      return reportSaveFailure(error, showStatus);
+    }
+    saveQueue = saveQueue.catch(() => undefined).then(async () => {
+      await applicationFillStorageSet({ applicationFillProfile: snapshot });
+      const stored = await applicationFillStorageGet("applicationFillProfile");
+      if (JSON.stringify(stored.applicationFillProfile) !== JSON.stringify(snapshot)) {
+        throw new Error("浏览器没有确认资料已写入本地存储。");
+      }
     });
+    return saveQueue.then(() => {
+      if (showStatus) setSaveButtonStatus("已保存", 1200);
+      return true;
+    }, (error) => reportSaveFailure(error, showStatus));
+  }
+  function setSaveButtonStatus(message, duration = 2500) {
+    const button = document.querySelector("#save");
+    if (!button) return;
+    clearTimeout(saveStatusTimer);
+    button.textContent = message;
+    saveStatusTimer = setTimeout(() => { button.textContent = "保存资料"; button.removeAttribute("title"); }, duration);
+  }
+  function reportSaveFailure(error, showStatus) {
+    console.error("Unable to save Job Application Fill profile", error);
+    const detail = error?.message ? `保存失败：${error.message}` : "保存失败，请重试。";
+    const button = document.querySelector("#save");
+    if (button) button.title = detail;
+    setSaveButtonStatus("保存失败");
+    if (showStatus) window.alert(detail);
+    return false;
   }
   function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { void saveProfile(); }, 350); }
 
   document.querySelectorAll("[data-locale]").forEach((button) => button.addEventListener("click", () => { locale = button.dataset.locale; document.querySelectorAll("[data-locale]").forEach((item) => item.classList.toggle("active", item === button)); render(); }));
   document.querySelector("#save").addEventListener("click", () => { void saveProfile(true); });
-  document.querySelector("#reset").addEventListener("click", () => { if (window.confirm("恢复为空白模板？现有资料将被替换。")) { profile = structuredClone(APPLICATION_FILL_DEFAULT_PROFILE); render(); void saveProfile(); } });
-  applicationFillProfile().then((value) => { profile = value; document.querySelector("[data-locale=zh]").classList.add("active"); render(); });
+  document.querySelector("#reset").addEventListener("click", () => { if (window.confirm("恢复为空白模板？现有资料将被替换。")) { profile = applicationFillClone(APPLICATION_FILL_DEFAULT_PROFILE); render(); void saveProfile(); } });
+  applicationFillProfile().then((value) => { profile = value; document.querySelector("[data-locale=zh]").classList.add("active"); render(); }).catch((error) => {
+    console.error("Unable to load Job Application Fill profile", error);
+    profile = applicationFillClone(APPLICATION_FILL_DEFAULT_PROFILE);
+    document.querySelector("[data-locale=zh]").classList.add("active");
+    render();
+    window.alert(`无法读取已保存的资料：${error?.message || "请检查 Safari 扩展设置后重试。"}`);
+  });
 })();
