@@ -2,6 +2,8 @@
   const app = document.querySelector("#app");
   const sectionLinks = document.querySelector("#section-links");
   const sectionDialog = document.querySelector("#section-dialog");
+  const saveButton = document.querySelector("#save");
+  const saveStatus = document.querySelector("#save-status");
   const workKey = APPLICATION_FILL_WORK_KEY;
   const internshipKey = APPLICATION_FILL_INTERNSHIP_KEY;
   let profile;
@@ -290,34 +292,16 @@
     } catch (error) {
       return reportSaveFailure(error, showStatus);
     }
-    saveQueue = saveQueue.catch(() => undefined).then(async () => {
-      await applicationFillStorageSet({ applicationFillProfile: snapshot });
-      await confirmStoredProfile(snapshot);
-    });
+    saveQueue = saveQueue.catch(() => undefined).then(() => applicationFillStorageSet({ applicationFillProfile: snapshot }));
     return saveQueue.then(() => {
+      setSaveMessage(showStatus ? "资料已保存。" : "资料已自动保存。", "success");
       if (showStatus) setSaveButtonStatus("已保存", 1200);
       return true;
     }, (error) => reportSaveFailure(error, showStatus));
   }
-  function sameStoredValue(left, right) {
-    if (Object.is(left, right)) return true;
-    if (Array.isArray(left) || Array.isArray(right)) return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => sameStoredValue(value, right[index]));
-    if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
-    const leftKeys = Object.keys(left).sort();
-    const rightKeys = Object.keys(right).sort();
-    return leftKeys.length === rightKeys.length && leftKeys.every((key, index) => key === rightKeys[index] && sameStoredValue(left[key], right[key]));
-  }
-  async function confirmStoredProfile(snapshot) {
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const stored = await applicationFillStorageGet("applicationFillProfile");
-      if (sameStoredValue(stored.applicationFillProfile, snapshot)) return;
-      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 80));
-    }
-    throw new Error("浏览器没有确认资料已写入本地存储。");
-  }
+  function setSaveMessage(message, state) { if (saveStatus) { saveStatus.textContent = message; saveStatus.dataset.state = state; } }
   function setSaveButtonStatus(message, duration = 2500) {
-    const button = document.querySelector("#save");
-    if (!button) return;
+    const button = saveButton;
     clearTimeout(saveStatusTimer);
     button.textContent = message;
     saveStatusTimer = setTimeout(() => { button.textContent = "保存资料"; button.removeAttribute("title"); }, duration);
@@ -325,20 +309,34 @@
   function reportSaveFailure(error, showStatus) {
     console.error("Unable to save Job Application Fill profile", error);
     const detail = error?.message ? `保存失败：${error.message}` : "保存失败，请重试。";
-    const button = document.querySelector("#save");
+    const button = saveButton;
     if (button) button.title = detail;
+    setSaveMessage(detail, "error");
     setSaveButtonStatus("保存失败");
     if (showStatus) window.alert(detail);
     return false;
   }
-  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { void saveProfile(); }, 350); }
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(() => { saveTimer = undefined; void saveProfile(); }, 350); }
+  function flushScheduledSave(showStatus = false) {
+    if (!saveTimer) return false;
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    void saveProfile(showStatus);
+    return true;
+  }
 
   document.querySelectorAll("[data-locale]").forEach((button) => button.addEventListener("click", () => { locale = button.dataset.locale; document.querySelectorAll("[data-locale]").forEach((item) => item.classList.toggle("active", item === button)); render(); }));
-  document.querySelector("#save").addEventListener("click", () => { void saveProfile(true); });
+  saveButton.addEventListener("click", () => { if (!flushScheduledSave(true)) void saveProfile(true); });
   document.querySelector("#reset").addEventListener("click", () => { if (window.confirm("恢复为空白模板？现有资料将被替换。")) { profile = applicationFillClone(APPLICATION_FILL_DEFAULT_PROFILE); render(); void saveProfile(); } });
-  applicationFillProfile().then((value) => { profile = value; document.querySelector("[data-locale=zh]").classList.add("active"); render(); }).catch((error) => {
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushScheduledSave(); });
+  window.addEventListener("pagehide", () => flushScheduledSave());
+  const version = applicationFillApi.runtime?.getManifest?.().version;
+  if (version) document.querySelector("#version").textContent = `版本 ${version}`;
+  applicationFillProfile().then((value) => { profile = value; saveButton.disabled = false; document.querySelector("#reset").disabled = false; document.querySelector("[data-locale=zh]").classList.add("active"); render(); }).catch((error) => {
     console.error("Unable to load Job Application Fill profile", error);
     profile = applicationFillClone(APPLICATION_FILL_DEFAULT_PROFILE);
+    saveButton.disabled = false;
+    document.querySelector("#reset").disabled = false;
     document.querySelector("[data-locale=zh]").classList.add("active");
     render();
     window.alert(`无法读取已保存的资料：${error?.message || "请检查 Safari 扩展设置后重试。"}`);

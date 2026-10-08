@@ -53,13 +53,14 @@ const APPLICATION_FILL_DEFAULT_PROFILE = {
 };
 
 const applicationFillApi = globalThis.browser ?? globalThis.chrome;
+const APPLICATION_FILL_STORAGE_TIMEOUT_MS = 12000;
 
 function applicationFillClone(value) {
   if (typeof globalThis.structuredClone === "function") return globalThis.structuredClone(value);
   return JSON.parse(JSON.stringify(value));
 }
 
-function applicationFillStorageCall(method, argument) {
+function applicationFillStorageCall(method, argument, timeoutMs = APPLICATION_FILL_STORAGE_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
     const storage = applicationFillApi?.storage?.local;
     if (!storage || typeof storage[method] !== "function") {
@@ -70,6 +71,7 @@ function applicationFillStorageCall(method, argument) {
     const settle = (callback, value) => {
       if (settled) return;
       settled = true;
+      clearTimeout(timeout);
       callback(value);
     };
     const callback = (result) => {
@@ -77,6 +79,7 @@ function applicationFillStorageCall(method, argument) {
       if (lastError) settle(reject, new Error(lastError.message || String(lastError)));
       else settle(resolve, result);
     };
+    const timeout = setTimeout(() => settle(reject, new Error(`本地存储${method === "set" ? "写入" : "读取"}超时，请重试。`)), timeoutMs);
     try {
       const result = storage[method](argument, callback);
       if (result && typeof result.then === "function") result.then((value) => settle(resolve, value), (error) => settle(reject, error));
