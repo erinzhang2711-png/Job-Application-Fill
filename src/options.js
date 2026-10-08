@@ -292,15 +292,28 @@
     }
     saveQueue = saveQueue.catch(() => undefined).then(async () => {
       await applicationFillStorageSet({ applicationFillProfile: snapshot });
-      const stored = await applicationFillStorageGet("applicationFillProfile");
-      if (JSON.stringify(stored.applicationFillProfile) !== JSON.stringify(snapshot)) {
-        throw new Error("浏览器没有确认资料已写入本地存储。");
-      }
+      await confirmStoredProfile(snapshot);
     });
     return saveQueue.then(() => {
       if (showStatus) setSaveButtonStatus("已保存", 1200);
       return true;
     }, (error) => reportSaveFailure(error, showStatus));
+  }
+  function sameStoredValue(left, right) {
+    if (Object.is(left, right)) return true;
+    if (Array.isArray(left) || Array.isArray(right)) return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => sameStoredValue(value, right[index]));
+    if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
+    const leftKeys = Object.keys(left).sort();
+    const rightKeys = Object.keys(right).sort();
+    return leftKeys.length === rightKeys.length && leftKeys.every((key, index) => key === rightKeys[index] && sameStoredValue(left[key], right[key]));
+  }
+  async function confirmStoredProfile(snapshot) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const stored = await applicationFillStorageGet("applicationFillProfile");
+      if (sameStoredValue(stored.applicationFillProfile, snapshot)) return;
+      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+    throw new Error("浏览器没有确认资料已写入本地存储。");
   }
   function setSaveButtonStatus(message, duration = 2500) {
     const button = document.querySelector("#save");
